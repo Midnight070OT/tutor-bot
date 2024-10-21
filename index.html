@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Tutor Availability</title>
+    <title>Dynamic Tutor Availability</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #1b2363;
             margin: 0;
             padding: 20px;
-        }
-
-        h1, h2 {
-            text-align: center;
             color: white;
         }
 
@@ -36,84 +31,56 @@
             margin-bottom: 8px;
         }
 
-        .tutor-item label {
-            display: inline-block;
-            padding: 10px;
-            background-color: #fafafa;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: 90%;
-        }
-
-        input[type="checkbox"] {
-            margin-right: 10px;
-        }
-
         .courses {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 10px 15px;
-            margin: 5px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .stats-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .stats-link a {
-            color: #f2ff00;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .stats-link a:hover {
-            text-decoration: underline;
+            margin-top: 10px;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
-
 <body>
     <div class="container">
         <h1>Tutor Availability</h1>
-        <form method="POST">
-            <div class="tutor-list">
-                <div class="tutor-item">
-                    <label><input type="checkbox" name="Alice" checked> Alice</label>
-                </div>
-                <div class="tutor-item">
-                    <label><input type="checkbox" name="Bob"> Bob</label>
-                </div>
-                <div class="tutor-item">
-                    <label><input type="checkbox" name="Charlie" checked> Charlie</label>
-                </div>
-            </div>
-            <button type="submit">Save Availability</button>
-        </form>
-
-        <h2>Select a Course:</h2>
-        <div class="courses">
-            <button type="button" onclick="window.location.href='/recommend/MATH';">MATH</button>
-            <button type="button" onclick="window.location.href='/recommend/SCIENCE';">SCIENCE</button>
-        </div>
-
-        <div class="stats-link">
-            <a href="/stats">View Daily Statistics</a>
-        </div>
+        <div class="tutor-list" id="tutor-list"></div>
     </div>
-</body>
 
+    <script>
+        // Fetch and parse the CSV file
+        const csvUrl = 'https://raw.githubusercontent.com/<your-username>/<repo-name>/main/Schedule%20By%20Class(MATH).csv';
+
+        Papa.parse(csvUrl, {
+            download: true,
+            header: false,
+            complete: function(results) {
+                const data = results.data;
+                const tutorList = document.getElementById('tutor-list');
+
+                // Extract courses from the first row
+                const courses = data[0].slice(1);
+
+                // Loop through tutors starting from the second row
+                data.slice(1).forEach(row => {
+                    const tutorName = row[0];  // Tutor name
+                    const tutorItem = document.createElement('div');
+                    tutorItem.className = 'tutor-item';
+                    tutorItem.innerHTML = `<strong>${tutorName}</strong><div class="courses"></div>`;
+
+                    // Add the courses they teach
+                    const coursesDiv = tutorItem.querySelector('.courses');
+                    row.slice(1).forEach((availability, index) => {
+                        if (availability === 'x') {
+                            const course = courses[index];
+                            const courseTag = document.createElement('span');
+                            courseTag.textContent = course + ' ';
+                            coursesDiv.appendChild(courseTag);
+                        }
+                    });
+
+                    tutorList.appendChild(tutorItem);
+                });
+            }
+        });
+    </script>
+</body>
 </html>
+
 
