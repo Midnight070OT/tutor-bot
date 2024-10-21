@@ -1,39 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Welcome</title>
+    <title>Tutor Availability</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-            margin: 0;
             font-family: Arial, sans-serif;
+            background-color: #1b2363;
+            margin: 0;
+            padding: 20px;
         }
-        .links {
+
+        h1, h2 {
             text-align: center;
         }
-        a {
-            display: block;
-            margin: 10px 0;
-            text-decoration: none;
-            font-size: 24px;
-            color: #007bff;
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #9395a7;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        a:hover {
+
+        .tutor-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .tutor-item {
+            width: 30%;
+            margin-bottom: 8px;
+        }
+
+        .tutor-item label {
+            display: inline-block;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 90%;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .courses {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .stats-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .stats-link a {
+            color: #f2ff00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .stats-link a:hover {
             text-decoration: underline;
         }
     </style>
+    <script>
+        function updateAvailability(tutorName, isChecked) {
+            fetch('/update-availability', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tutor_name: tutorName, is_available: isChecked })
+            })
+            .then(response => response.json())
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </head>
+
 <body>
-    <div class="links">
-        <h1>Welcome to My Website</h1>
-        <a href="availability.html">Tutor Availability</a>
-        <a href="recommendation.html">Recommendation</a>
-        <a href="stats.html">Daily Statistics</a>
+    <div class="container">
+        <h1>Tutor Availability</h1>
+        <form method="POST">
+            <div class="tutor-list">
+                {% for tutor in tutors %}
+                <div class="tutor-item">
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            name="{{ tutor }}" 
+                            {% if availability[tutor] %}checked{% endif %}
+                            onchange="updateAvailability('{{ tutor }}', this.checked);">
+                        {{ tutor }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit">Save Availability</button>
+        </form>
+
+        <h2>Select a Course:</h2>
+        <div class="courses">
+            {% for course in courses %}
+            <button type="button" onclick="window.location.href='/recommend/{{ course }}';">
+                {{ course }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <div class="stats-link">
+            <a href="/stats">View Daily Statistics</a>
+        </div>
     </div>
 </body>
+
 </html>
