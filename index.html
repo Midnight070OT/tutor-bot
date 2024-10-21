@@ -1,5 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+import csv
+
+with open('Schedule By Class(MATH).csv') as csv_file:
+    reader = csv.reader(csv_file)
+    for row in reader:
+        print(f'<div class="tutor-item"><label>{row[0]}</label></div>')
 
 <head>
     <meta charset="UTF-8">
