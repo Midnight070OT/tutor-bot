@@ -78,9 +78,14 @@
         const tutorGrid = document.getElementById('tutor-grid');
         const courseGrid = document.getElementById('course-grid');
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-
-        // Load stored Excel data from localStorage if it exists
         const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
+
+        // Load the data when the page is loaded or reloaded
+        window.addEventListener('load', () => {
+            if (storedExcelData) {
+                renderTutorsAndCourses(storedExcelData);
+            }
+        });
 
         document.getElementById('file-input').addEventListener('change', event => {
             const file = event.target.files[0];
@@ -92,7 +97,6 @@
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    // Store the Excel data in localStorage
                     localStorage.setItem('excelData', JSON.stringify(jsonData));
                     renderTutorsAndCourses(jsonData);
                 };
@@ -133,7 +137,6 @@
                 courseGrid.appendChild(courseItem);
             });
 
-            // Store updated tutorsData in localStorage
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
 
@@ -164,11 +167,7 @@
             }
             alert(stats);
         }
-
-        // Render tutors and courses if data is already in localStorage
-        if (storedExcelData) {
-            renderTutorsAndCourses(storedExcelData);
-        }
     </script>
 </body>
 </html>
+
