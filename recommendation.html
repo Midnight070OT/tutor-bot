@@ -9,6 +9,7 @@
             background-color: #030303;
             margin: 0;
             padding: 20px;
+            color: white;
         }
 
         .container {
@@ -21,70 +22,53 @@
             text-align: center;
         }
 
-        h1 {
-            color: #007bff;
-        }
-
-        p {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-
-        .actions {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-
         button {
             background-color: #007bff;
-            color: rgb(252, 251, 251);
+            color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 5px;
             cursor: pointer;
-            width: 100%;
+            margin: 5px;
         }
 
         button:hover {
             background-color: #0056b3;
         }
-
-        .in-session {
-            background-color: orange;
-        }
-
-        .in-session:hover {
-            background-color: darkorange;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Course: {{ course }}</h1>
-        {% if recommendation %}
-            <p>Recommended Tutor: <strong>{{ recommendation }}</strong></p>
+        <h1 id="course-title"></h1>
+        <p>Recommended Tutor: <strong id="tutor-name"></strong></p>
 
-            <div class="actions">
-                <form action="/accept" method="POST">
-                    <input type="hidden" name="tutor" value="{{ recommendation }}">
-                    <button type="submit">Accept</button>
-                </form>
-
-                <form action="/decline" method="POST">
-                    <input type="hidden" name="tutor" value="{{ recommendation }}">
-                    <button type="submit">Decline</button>
-                </form>
-
-                <form action="/in-session" method="POST">
-                    <input type="hidden" name="tutor" value="{{ recommendation }}">
-                    <button type="submit" class="in-session">In Session</button>
-                </form>
-            </div>
-        {% else %}
-            <p>No available tutors for this course.</p>
-            <a href="/availability">Back to Availability</a>
-        {% endif %}
+        <button onclick="acceptSession()">Accept</button>
+        <button onclick="declineSession()">Decline</button>
+        <button onclick="markInSession()">In Session</button>
     </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const course = params.get('course');
+        const tutor = params.get('tutor');
+
+        document.getElementById('course-title').textContent = `Course: ${course}`;
+        document.getElementById('tutor-name').textContent = tutor;
+
+        function acceptSession() {
+            alert(`${tutor} accepted the session.`);
+            window.history.back();
+        }
+
+        function declineSession() {
+            alert(`${tutor} declined the session.`);
+            window.history.back();
+        }
+
+        function markInSession() {
+            alert(`${tutor} is now in a session.`);
+            window.history.back();
+        }
+    </script>
 </body>
 </html>
