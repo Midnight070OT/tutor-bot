@@ -58,7 +58,6 @@
         const fileInput = document.getElementById('file-input');
         const tutorList = document.getElementById('tutor-list');
 
-        // Event listener for file input
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -67,32 +66,29 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
 
-                    // Assuming the first sheet contains the relevant data
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
 
-                    // Convert the worksheet to JSON
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    console.log(jsonData);  // Log the data to the console for debugging
 
-                    // Render the tutor availability from the JSON data
                     renderTutors(jsonData);
                 };
                 reader.readAsArrayBuffer(file);
             }
         });
 
-        // Render tutors dynamically from the parsed Excel data
         function renderTutors(data) {
-            tutorList.innerHTML = ''; // Clear the list
+            tutorList.innerHTML = '';  // Clear previous content
 
-            const courses = data[0].slice(1).filter(course => course); // Extract courses from the first row
+            const courses = data[0].slice(1).filter(course => course);
+            console.log('Courses:', courses);  // Log courses for debugging
 
-            // Loop through tutors starting from the second row
             data.slice(1).forEach(row => {
-                const tutorName = row[0]; // Tutor name
-                if (!tutorName) return; // Skip empty rows
+                const tutorName = row[0];
+                if (!tutorName) return;  // Skip empty rows
 
-                const availability = row.slice(1); // Availability flags
+                const availability = row.slice(1);
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
@@ -114,3 +110,4 @@
     </script>
 </body>
 </html>
+
