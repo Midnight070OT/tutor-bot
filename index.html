@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +7,9 @@
         body {
             font-family: 'Arial', sans-serif;
             background-color: #1b2363;
+            color: white;
             margin: 0;
             padding: 0;
-            color: white;
         }
 
         .header {
@@ -26,28 +25,22 @@
             margin-right: 15px;
         }
 
-        .header h1 {
-            font-size: 24px;
-            margin: 0;
-        }
-
         .container {
             width: 90%;
             margin: 20px auto;
             background-color: white;
+            color: #1b2363;
             padding: 20px;
             border-radius: 8px;
-            color: #1b2363;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
 
-        .course-grid {
+        .course-grid, .tutor-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
         }
 
-        .course-item {
+        .course-item, .tutor-item {
             width: 30%;
             margin-bottom: 15px;
         }
@@ -59,7 +52,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
             margin-top: 5px;
         }
 
@@ -76,27 +68,69 @@
     </div>
 
     <div class="container">
+        <h2>Upload Tutor Schedule</h2>
+        <input type="file" id="file-input" />
+
         <h2>Courses</h2>
-        <div class="course-grid" id="course-grid"></div>
+        <div id="course-grid" class="course-grid"></div>
+
+        <button id="view-stats">View Stats</button>
+        <div id="stats-output"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const courseGrid = document.querySelector('#course-grid');
-            const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {
-                'John Doe': { available: true, sessions: 0 },
-                'Jane Smith': { available: true, sessions: 0 },
-            };
+            const fileInput = document.querySelector('#file-input');
+            const statsOutput = document.querySelector('#stats-output');
+            let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-            const courses = ['Math', 'Science', 'History']; // Example courses
+            fileInput.addEventListener('change', handleFileUpload);
 
-            // Render courses with buttons
-            courses.forEach(course => {
-                const courseItem = document.createElement('div');
-                courseItem.className = 'course-item';
-                courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
-                courseGrid.appendChild(courseItem);
-            });
+            function handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                    populateData(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function populateData(data) {
+                const courses = data[0].slice(1).filter(Boolean); // Extract course names from the header
+                tutorsData = {}; // Reset tutorsData
+
+                // Populate tutors from Excel rows
+                data.slice(1).forEach(row => {
+                    const tutorName = row[0];
+                    if (tutorName) {
+                        tutorsData[tutorName] = { available: true, sessions: 0 };
+                    }
+                });
+
+                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+                renderCourses(courses);
+            }
+
+            function renderCourses(courses) {
+                courseGrid.innerHTML = ''; // Clear previous content
+
+                courses.forEach(course => {
+                    const courseItem = document.createElement('div');
+                    courseItem.className = 'course-item';
+                    courseItem.innerHTML = `
+                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
+                    `;
+                    courseGrid.appendChild(courseItem);
+                });
+            }
 
             window.redirectToRecommendation = function(course) {
                 const availableTutors = Object.entries(tutorsData)
@@ -104,14 +138,28 @@
                     .sort((a, b) => a[1].sessions - b[1].sessions);
 
                 if (availableTutors.length === 0) {
-                    alert('No tutors available for this course.');
+                    alert('No tutors available.');
                     return;
                 }
 
-                const [tutorName] = availableTutors[0]; // Select tutor with least sessions
+                const [tutorName] = availableTutors[0];
                 const url = `recommendation.html?course=${encodeURIComponent(course)}&tutor=${encodeURIComponent(tutorName)}`;
                 window.location.href = url;
             };
+
+            document.querySelector('#view-stats').addEventListener('click', showStats);
+
+            function showStats() {
+                const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+                let statsHtml = '<h3>Tutor Stats</h3><ul>';
+
+                Object.entries(tutorsData).forEach(([name, data]) => {
+                    statsHtml += `<li>${name}: ${data.sessions} sessions</li>`;
+                });
+
+                statsHtml += '</ul>';
+                statsOutput.innerHTML = statsHtml;
+            }
         });
     </script>
 </body>
