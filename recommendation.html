@@ -20,6 +20,7 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            color: #1b2363;
         }
 
         button {
@@ -55,8 +56,23 @@
         document.getElementById('course-title').textContent = `Course: ${course}`;
         document.getElementById('tutor-name').textContent = tutor;
 
+        const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+        function updateTutorData(action) {
+            if (!tutorsData[tutor]) return;
+
+            if (action === 'accept') {
+                tutorsData[tutor].sessions += 1;
+            } else if (action === 'inSession') {
+                tutorsData[tutor].available = false;
+            }
+
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        }
+
         function acceptSession() {
             alert(`${tutor} accepted the session.`);
+            updateTutorData('accept');
             window.history.back();
         }
 
@@ -67,6 +83,7 @@
 
         function markInSession() {
             alert(`${tutor} is now in a session.`);
+            updateTutorData('inSession');
             window.history.back();
         }
     </script>
