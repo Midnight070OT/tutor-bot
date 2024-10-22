@@ -1,14 +1,46 @@
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TSC Tutor Availability and Course Assignment</title>
+    <style>
+        /* Styles omitted for brevity */
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <img src="assets/images/TSC-Logo.png" alt="TSC Logo" />
+        <h1>TSC Tutor Availability and Course Assignment</h1>
+    </div>
+
+    <div class="container">
+        <h2>Upload Tutor Schedule</h2>
+        <div class="file-upload">
+            <input type="file" id="file-input" />
+        </div>
+
+        <h2>Tutors</h2>
+        <div class="tutor-grid" id="tutor-grid"></div>
+
+        <h2>Courses</h2>
+        <div class="course-grid" id="course-grid"></div>
+
+        <button class="stats-button" onclick="showStats()">View Statistics</button>
+    </div>
+
+    <!-- Move script to the bottom to ensure elements are loaded -->
+    <script>
         const tutorGrid = document.getElementById('tutor-grid');
         const courseGrid = document.getElementById('course-grid');
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
 
-        // Load the data when the page is loaded or reloaded
-        if (storedExcelData) {
-            renderTutorsAndCourses(storedExcelData);
-        }
+        window.addEventListener('load', () => {
+            if (storedExcelData) {
+                renderTutorsAndCourses(storedExcelData);
+            }
+        });
 
         document.getElementById('file-input').addEventListener('change', event => {
             const file = event.target.files[0];
@@ -135,5 +167,6 @@
             }
             alert(stats);
         }
-    });
-</script>
+    </script>
+</body>
+</html>
