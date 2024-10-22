@@ -85,11 +85,13 @@
         function renderTutors(data) {
             tutorList.innerHTML = ''; // Clear the list
 
-            const courses = data[0].slice(1); // Extract courses from the first row
+            const courses = data[0].slice(1).filter(course => course); // Extract courses from the first row
 
             // Loop through tutors starting from the second row
             data.slice(1).forEach(row => {
                 const tutorName = row[0]; // Tutor name
+                if (!tutorName) return; // Skip empty rows
+
                 const availability = row.slice(1); // Availability flags
 
                 const tutorItem = document.createElement('div');
@@ -98,7 +100,7 @@
 
                 const coursesDiv = tutorItem.querySelector('.courses');
                 availability.forEach((flag, index) => {
-                    if (flag === 'x') {
+                    if (flag === 'x' && courses[index]) {
                         const course = courses[index];
                         const courseTag = document.createElement('span');
                         courseTag.textContent = course + ' ';
@@ -112,4 +114,3 @@
     </script>
 </body>
 </html>
-
