@@ -2,25 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tutor Availability and Course Assignment</title>
+    <title>TSC Tutor Availability and Course Assignment</title>
     <style>
+        /* General Page Styling */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #1b2363;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: white;
         }
 
-        .container {
-            width: 90%;
-            margin: 0 auto;
-            background-color: #9395a7;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        /* Header Styling */
+        .header {
+            display: flex;
+            align-items: center;
+            background-color: #1b2363;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
+        .header img {
+            height: 50px;
+            margin-right: 15px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        /* Main Container */
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            color: #1b2363;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Grid Layouts */
         .tutor-grid, .course-grid {
             display: flex;
             flex-wrap: wrap;
@@ -32,35 +55,52 @@
             margin-bottom: 15px;
         }
 
+        /* Checkbox Styling */
         input[type="checkbox"] {
             margin-right: 10px;
         }
 
+        /* Button Styling */
         button {
             padding: 10px;
-            background-color: #007bff;
-            color: white;
+            background-color: #fcbf49;
+            color: #1b2363;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-weight: bold;
             margin-top: 5px;
+            transition: background-color 0.3s ease;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #f77f00;
         }
 
         .stats-button {
             margin-top: 20px;
-            background-color: red;
+            width: 100%;
+            background-color: #f77f00;
+        }
+
+        /* File Upload Styling */
+        .file-upload input {
+            display: block;
+            margin: 10px 0;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Tutor Availability and Course Assignment</h1>
+    <!-- Header Section -->
+    <div class="header">
+        <img src="TSC-Logo.png" alt="TSC Logo" />
+        <h1>TSC Tutor Availability and Course Assignment</h1>
+    </div>
 
+    <!-- Main Content Container -->
+    <div class="container">
+        <h2>Upload Tutor Schedule</h2>
         <div class="file-upload">
             <input type="file" id="file-input" />
         </div>
@@ -80,7 +120,7 @@
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
 
-        // Load the data when the page is loaded or reloaded
+        // Load the data on page load
         window.addEventListener('load', () => {
             if (storedExcelData) {
                 renderTutorsAndCourses(storedExcelData);
@@ -170,4 +210,3 @@
     </script>
 </body>
 </html>
-
