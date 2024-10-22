@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tutor Availability</title>
+    <title>Tutor Availability and Course Assignment</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,123 +13,159 @@
         }
 
         .container {
-            width: 80%;
+            width: 90%;
             margin: 0 auto;
             background-color: #9395a7;
             padding: 20px;
+            border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .file-upload {
-            margin-bottom: 20px;
-        }
-
-        .tutor-list {
+        .tutor-grid, .course-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
         }
 
-        .tutor-item {
+        .tutor-item, .course-item {
             width: 30%;
-            margin-bottom: 8px;
+            margin-bottom: 15px;
         }
 
-        .courses {
-            margin-top: 10px;
+        input[type="checkbox"] {
+            margin-right: 10px;
         }
 
         button {
-            margin: 5px;
             padding: 10px;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 5px;
         }
 
         button:hover {
             background-color: #0056b3;
+        }
+
+        .in-session {
+            background-color: orange;
+        }
+
+        .in-session:hover {
+            background-color: darkorange;
+        }
+
+        .stats-button {
+            margin-top: 20px;
+            background-color: red;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Tutor Availability</h1>
+        <h1>Tutor Availability and Course Assignment</h1>
 
-        <!-- File Upload Section -->
         <div class="file-upload">
             <input type="file" id="file-input" />
         </div>
 
-        <!-- Tutor List Section -->
-        <div class="tutor-list" id="tutor-list"></div>
+        <h2>Tutors</h2>
+        <div class="tutor-grid" id="tutor-grid"></div>
+
+        <h2>Courses</h2>
+        <div class="course-grid" id="course-grid"></div>
+
+        <button class="stats-button" onclick="showStats()">View Statistics</button>
     </div>
 
     <script>
-        const fileInput = document.getElementById('file-input');
-        const tutorList = document.getElementById('tutor-list');
+        const tutorGrid = document.getElementById('tutor-grid');
+        const courseGrid = document.getElementById('course-grid');
+        const tutorsData = {};  // Track tutors and their stats
 
-        fileInput.addEventListener('change', (event) => {
+        document.getElementById('file-input').addEventListener('change', event => {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = e => {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    console.log(jsonData);  // Debugging log to inspect the parsed data
-
-                    renderTutors(jsonData);
+                    renderTutorsAndCourses(jsonData);
                 };
                 reader.readAsArrayBuffer(file);
             }
         });
 
-        function renderTutors(data) {
-            tutorList.innerHTML = '';  // Clear previous content
+        function renderTutorsAndCourses(data) {
+            tutorGrid.innerHTML = '';
+            courseGrid.innerHTML = '';
 
-            const courses = data[0].slice(1).filter(course => course);  // Extract valid course names
-            console.log('Courses:', courses);  // Log courses for debugging
+            const courses = data[0].slice(1).filter(Boolean);
 
-            // Loop through each tutor row (starting from the second row)
+            // Render Tutors
             data.slice(1).forEach(row => {
-                const tutorName = row[0];  // Get the tutor's name
-                if (!tutorName) return;  // Skip empty rows
-
-                const availability = row.slice(1);  // Get availability flags
+                const tutorName = row[0];
+                if (!tutorName) return;
+                tutorsData[tutorName] = { available: false, sessions: 0 };
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
-                tutorItem.innerHTML = `<strong>${tutorName}</strong><div class="courses"></div>`;
+                tutorItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" onchange="toggleAvailability('${tutorName}')">
+                        ${tutorName}
+                    </label>
+                `;
+                tutorGrid.appendChild(tutorItem);
+            });
 
-                const coursesDiv = tutorItem.querySelector('.courses');
-                availability.forEach((flag, index) => {
-                    if (flag && flag.toLowerCase() === 'x' && courses[index]) {
-                        const course = courses[index];
-
-                        // Create a button for each available course
-                        const courseButton = document.createElement('button');
-                        courseButton.textContent = course;
-                        courseButton.onclick = () => handleCourseClick(tutorName, course);
-
-                        coursesDiv.appendChild(courseButton);
-                    }
-                });
-
-                tutorList.appendChild(tutorItem);
+            // Render Courses
+            courses.forEach(course => {
+                const courseItem = document.createElement('div');
+                courseItem.className = 'course-item';
+                courseItem.innerHTML = `<button onclick="assignTutor('${course}')">${course}</button>`;
+                courseGrid.appendChild(courseItem);
             });
         }
 
-        // Function to handle course button clicks
-        function handleCourseClick(tutorName, course) {
-            alert(`${tutorName} is available for ${course}`);
+        function toggleAvailability(tutorName) {
+            tutorsData[tutorName].available = !tutorsData[tutorName].available;
+        }
+
+        function assignTutor(course) {
+            const availableTutors = Object.entries(tutorsData)
+                .filter(([name, data]) => data.available)
+                .sort((a, b) => a[1].sessions - b[1].sessions);
+
+            if (availableTutors.length === 0) {
+                alert(`No tutors available for ${course}`);
+                return;
+            }
+
+            const [tutorName] = availableTutors[0];
+            const confirmAction = confirm(`${tutorName} assigned to ${course}. Accept session?`);
+
+            if (confirmAction) {
+                tutorsData[tutorName].sessions++;
+                alert(`${tutorName} accepted the session.`);
+            } else {
+                alert(`${tutorName} declined the session.`);
+            }
+        }
+
+        function showStats() {
+            let stats = 'Tutor Stats:\n';
+            for (const [name, data] of Object.entries(tutorsData)) {
+                stats += `${name} - Sessions: ${data.sessions}\n`;
+            }
+            alert(stats);
         }
     </script>
 </body>
