@@ -83,131 +83,135 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const tutorGrid = document.querySelector('#tutor-grid');
-            const courseGrid = document.querySelector('#course-grid');
-            const fileInput = document.querySelector('#file-input');
-            const statsOutput = document.querySelector('#stats-output');
+document.addEventListener('DOMContentLoaded', () => {
+    const tutorGrid = document.querySelector('#tutor-grid');
+    const courseGrid = document.querySelector('#course-grid');
+    const fileInput = document.querySelector('#file-input');
+    const statsOutput = document.querySelector('#stats-output');
 
-            let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-            fileInput.addEventListener('change', handleFileUpload);
+    fileInput.addEventListener('change', handleFileUpload);
 
-            function handleFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file) {
-                    console.error('No file selected');
-                    return;
-                }
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            console.error('No file selected');
+            return;
+        }
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    if (jsonData.length > 0) {
-                        populateData(jsonData);
-                    } else {
-                        console.error('Excel file is empty or not formatted correctly');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
+            if (jsonData.length > 0) {
+                populateData(jsonData);
+            } else {
+                console.error('Excel file is empty or not formatted correctly');
             }
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
-            function populateData(data) {
-                const courses = data[0].slice(1).filter(Boolean); // Extract course names
-                tutorsData = {}; // Reset tutors data
+    function populateData(data) {
+        const courseNames = data[0].slice(1).filter(Boolean); // Extract course names from the header
+        tutorsData = {}; // Reset tutors data
 
-                data.slice(1).forEach(row => {
-                    const tutorName = row[0];
-                    if (!tutorName) return;
+        data.slice(1).forEach(row => {
+            const tutorName = row[0];
+            if (!tutorName) return;
 
-                    const tutorCourses = row.slice(1).filter(Boolean); // Extract courses taught
-                    tutorsData[tutorName] = { 
-                        available: true, 
-                        sessions: 0, 
-                        courses: tutorCourses 
-                    };
-                });
+            const tutorCourses = row.slice(1)
+                .map((value, index) => value.toLowerCase() === 'x' ? courseNames[index] : null)
+                .filter(Boolean); // Extract only courses marked with "x"
 
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-                renderTutors(); // Render tutors after populating data
-                renderCourses(courses);
-            }
-
-            function renderTutors() {
-                tutorGrid.innerHTML = ''; // Clear previous content
-
-                Object.entries(tutorsData).forEach(([name, data]) => {
-                    const tutorItem = document.createElement('div');
-                    tutorItem.className = 'tutor-item';
-                    tutorItem.innerHTML = `
-                        <label>
-                            <input type="checkbox" id="check-${name}" ${data.available ? 'checked' : ''} 
-                                   onchange="toggleAvailability('${name}')">
-                            ${name} (Sessions: ${data.sessions})
-                        </label>
-                    `;
-                    tutorGrid.appendChild(tutorItem);
-                });
-            }
-
-            window.toggleAvailability = function(tutorName) {
-                const tutor = tutorsData[tutorName];
-                tutor.available = !tutor.available; // Toggle availability
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
-                renderTutors(); // Re-render tutors to reflect changes
+            tutorsData[tutorName] = { 
+                available: true, 
+                sessions: 0, 
+                courses: tutorCourses 
             };
-
-            function renderCourses(courses) {
-                courseGrid.innerHTML = ''; // Clear previous content
-
-                courses.forEach(course => {
-                    const courseItem = document.createElement('div');
-                    courseItem.className = 'course-item';
-                    courseItem.innerHTML = `
-                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
-                    `;
-                    courseGrid.appendChild(courseItem);
-                });
-            }
-
-            window.redirectToRecommendation = function(course) {
-                const eligibleTutors = Object.entries(tutorsData)
-                    .filter(([name, data]) => data.available && data.courses.includes(course))
-                    .sort((a, b) => a[1].sessions - b[1].sessions);
-
-                if (eligibleTutors.length === 0) {
-                    alert(`No tutors available for ${course}`);
-                    return;
-                }
-
-                const [tutorName] = eligibleTutors[0];
-                const url = `recommendation.html?course=${encodeURIComponent(course)}&tutor=${encodeURIComponent(tutorName)}`;
-                window.location.href = url;
-            };
-
-            document.querySelector('#view-stats').addEventListener('click', showStats);
-
-            function showStats() {
-                const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-                let statsHtml = '<h3>Tutor Stats</h3><ul>';
-
-                Object.entries(tutorsData).forEach(([name, data]) => {
-                    statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${data.courses.join(', ')}</li>`;
-                });
-
-                statsHtml += '</ul>';
-                statsOutput.innerHTML = statsHtml;
-            }
-
-            // Initial render of tutors if data exists in localStorage
-            if (Object.keys(tutorsData).length > 0) {
-                renderTutors();
-            }
         });
+
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        renderTutors(); // Render tutors after populating data
+        renderCourses(courseNames);
+    }
+
+    function renderTutors() {
+        tutorGrid.innerHTML = ''; // Clear previous content
+
+        Object.entries(tutorsData).forEach(([name, data]) => {
+            const tutorItem = document.createElement('div');
+            tutorItem.className = 'tutor-item';
+            tutorItem.innerHTML = `
+                <label>
+                    <input type="checkbox" id="check-${name}" ${data.available ? 'checked' : ''} 
+                           onchange="toggleAvailability('${name}')">
+                    ${name} (Sessions: ${data.sessions}) - Courses: ${data.courses.join(', ')}
+                </label>
+            `;
+            tutorGrid.appendChild(tutorItem);
+        });
+    }
+
+    window.toggleAvailability = function(tutorName) {
+        const tutor = tutorsData[tutorName];
+        tutor.available = !tutor.available; // Toggle availability
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
+        renderTutors(); // Re-render tutors to reflect changes
+    };
+
+    function renderCourses(courses) {
+        courseGrid.innerHTML = ''; // Clear previous content
+
+        courses.forEach(course => {
+            const courseItem = document.createElement('div');
+            courseItem.className = 'course-item';
+            courseItem.innerHTML = `
+                <button onclick="redirectToRecommendation('${course}')">${course}</button>
+            `;
+            courseGrid.appendChild(courseItem);
+        });
+    }
+
+    window.redirectToRecommendation = function(course) {
+        const eligibleTutors = Object.entries(tutorsData)
+            .filter(([name, data]) => data.available && data.courses.includes(course))
+            .sort((a, b) => a[1].sessions - b[1].sessions);
+
+        if (eligibleTutors.length === 0) {
+            alert(`No tutors available for ${course}`);
+            return;
+        }
+
+        const [tutorName] = eligibleTutors[0];
+        const url = `recommendation.html?course=${encodeURIComponent(course)}&tutor=${encodeURIComponent(tutorName)}`;
+        window.location.href = url;
+    };
+
+    document.querySelector('#view-stats').addEventListener('click', showStats);
+
+    function showStats() {
+        const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        let statsHtml = '<h3>Tutor Stats</h3><ul>';
+
+        Object.entries(tutorsData).forEach(([name, data]) => {
+            statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${data.courses.join(', ')}</li>`;
+        });
+
+        statsHtml += '</ul>';
+        statsOutput.innerHTML = statsHtml;
+    }
+
+    // Initial render of tutors if data exists in localStorage
+    if (Object.keys(tutorsData).length > 0) {
+        renderTutors();
+    }
+});
+
     </script>
 </body>
 </html>
