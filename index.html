@@ -75,98 +75,93 @@
     </div>
 
     <script>
-        const tutorGrid = document.getElementById('tutor-grid');
-        const courseGrid = document.getElementById('course-grid');
-        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-        const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
+             document.addEventListener('DOMContentLoaded', () => {
+            const courseGrid = document.querySelector('#course-grid');
+            const fileInput = document.querySelector('#file-input');
+            const statsOutput = document.querySelector('#stats-output');
+            let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-        // Load the data when the page is loaded or reloaded
-        window.addEventListener('load', () => {
-            if (storedExcelData) {
-                renderTutorsAndCourses(storedExcelData);
-            }
-        });
+            fileInput.addEventListener('change', handleFileUpload);
 
-        document.getElementById('file-input').addEventListener('change', event => {
-            const file = event.target.files[0];
-            if (file) {
+            function handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
                 const reader = new FileReader();
-                reader.onload = e => {
+                reader.onload = (e) => {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    localStorage.setItem('excelData', JSON.stringify(jsonData));
-                    renderTutorsAndCourses(jsonData);
+                    populateData(jsonData);
                 };
                 reader.readAsArrayBuffer(file);
             }
-        });
 
-        function renderTutorsAndCourses(data) {
-            tutorGrid.innerHTML = '';
-            courseGrid.innerHTML = '';
+            function populateData(data) {
+                const courses = data[0].slice(1).filter(Boolean); // Extract course names from header
+                tutorsData = {}; // Reset tutorsData
 
-            const courses = data[0].slice(1).filter(Boolean);
+                // Populate tutors from Excel rows
+                data.slice(1).forEach(row => {
+                    const tutorName = row[0];
+                    if (!tutorName) return;
 
-            data.slice(1).forEach(row => {
-                const tutorName = row[0];
-                if (!tutorName) return;
+                    const tutorCourses = row.slice(1).filter(Boolean); // Extract courses taught by the tutor
+                    tutorsData[tutorName] = { 
+                        available: true, 
+                        sessions: 0, 
+                        courses: tutorCourses 
+                    };
+                });
 
-                if (!tutorsData[tutorName]) {
-                    tutorsData[tutorName] = { available: false, sessions: 0 };
+                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+                renderCourses(courses);
+            }
+
+            function renderCourses(courses) {
+                courseGrid.innerHTML = ''; // Clear previous content
+
+                courses.forEach(course => {
+                    const courseItem = document.createElement('div');
+                    courseItem.className = 'course-item';
+                    courseItem.innerHTML = `
+                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
+                    `;
+                    courseGrid.appendChild(courseItem);
+                });
+            }
+
+            window.redirectToRecommendation = function(course) {
+                const eligibleTutors = Object.entries(tutorsData)
+                    .filter(([name, data]) => data.available && data.courses.includes(course))
+                    .sort((a, b) => a[1].sessions - b[1].sessions);
+
+                if (eligibleTutors.length === 0) {
+                    alert(`No tutors available for ${course}`);
+                    return;
                 }
 
-                const tutorItem = document.createElement('div');
-                tutorItem.className = 'tutor-item';
-                tutorItem.innerHTML = `
-                    <label>
-                        <input type="checkbox" id="check-${tutorName}" ${tutorsData[tutorName].available ? 'checked' : ''} 
-                               onchange="toggleAvailability('${tutorName}')">
-                        ${tutorName}
-                    </label>
-                `;
-                tutorGrid.appendChild(tutorItem);
-            });
+                const [tutorName] = eligibleTutors[0]; // Select tutor with the fewest sessions
+                const url = `recommendation.html?course=${encodeURIComponent(course)}&tutor=${encodeURIComponent(tutorName)}`;
+                window.location.href = url;
+            };
 
-            courses.forEach(course => {
-                const courseItem = document.createElement('div');
-                courseItem.className = 'course-item';
-                courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
-                courseGrid.appendChild(courseItem);
-            });
+            document.querySelector('#view-stats').addEventListener('click', showStats);
 
-            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-        }
+            function showStats() {
+                const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+                let statsHtml = '<h3>Tutor Stats</h3><ul>';
 
-        function toggleAvailability(tutorName) {
-            tutorsData[tutorName].available = !tutorsData[tutorName].available;
-            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-        }
+                Object.entries(tutorsData).forEach(([name, data]) => {
+                    statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${data.courses.join(', ')}</li>`;
+                });
 
-        function redirectToRecommendation(course) {
-            const availableTutors = Object.entries(tutorsData)
-                .filter(([name, data]) => data.available)
-                .sort((a, b) => a[1].sessions - b[1].sessions);
-
-            if (availableTutors.length === 0) {
-                alert(`No tutors available for ${course}`);
-                return;
+                statsHtml += '</ul>';
+                statsOutput.innerHTML = statsHtml;
             }
-
-            const [tutorName] = availableTutors[0];
-            const params = new URLSearchParams({ course, tutor: tutorName });
-            window.location.href = `recommendation.html?${params.toString()}`;
-        }
-
-        function showStats() {
-            let stats = 'Tutor Stats:\n';
-            for (const [name, data] of Object.entries(tutorsData)) {
-                stats += `${name} - Sessions: ${data.sessions}\n`;
-            }
-            alert(stats);
-        }
+        });
     </script>
 </body>
 </html>
