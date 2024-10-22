@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Tutor Availability</title>
+    <title>Tutor Availability</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,6 +20,10 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        .file-upload {
+            margin-bottom: 20px;
+        }
+
         .tutor-list {
             display: flex;
             flex-wrap: wrap;
@@ -35,52 +39,77 @@
             margin-top: 10px;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Tutor Availability</h1>
+
+        <!-- File Upload Section -->
+        <div class="file-upload">
+            <input type="file" id="file-input" />
+        </div>
+
+        <!-- Tutor List Section -->
         <div class="tutor-list" id="tutor-list"></div>
     </div>
 
     <script>
-        // Fetch and parse the CSV file
-        const csvUrl = 'https://raw.githubusercontent.com/midnight070OT/tutor-bot/main/Schedule%20By%20Class(MATH).csv';
+        const fileInput = document.getElementById('file-input');
+        const tutorList = document.getElementById('tutor-list');
 
-        Papa.parse(csvUrl, {
-            download: true,
-            header: false,
-            complete: function(results) {
-                const data = results.data;
-                const tutorList = document.getElementById('tutor-list');
+        // Event listener for file input
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
 
-                // Extract courses from the first row
-                const courses = data[0].slice(1);
+                    // Assuming the first sheet contains the relevant data
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
 
-                // Loop through tutors starting from the second row
-                data.slice(1).forEach(row => {
-                    const tutorName = row[0];  // Tutor name
-                    const tutorItem = document.createElement('div');
-                    tutorItem.className = 'tutor-item';
-                    tutorItem.innerHTML = `<strong>${tutorName}</strong><div class="courses"></div>`;
+                    // Convert the worksheet to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-                    // Add the courses they teach
-                    const coursesDiv = tutorItem.querySelector('.courses');
-                    row.slice(1).forEach((availability, index) => {
-                        if (availability === 'x') {
-                            const course = courses[index];
-                            const courseTag = document.createElement('span');
-                            courseTag.textContent = course + ' ';
-                            coursesDiv.appendChild(courseTag);
-                        }
-                    });
-
-                    tutorList.appendChild(tutorItem);
-                });
+                    // Render the tutor availability from the JSON data
+                    renderTutors(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
             }
         });
+
+        // Render tutors dynamically from the parsed Excel data
+        function renderTutors(data) {
+            tutorList.innerHTML = ''; // Clear the list
+
+            const courses = data[0].slice(1); // Extract courses from the first row
+
+            // Loop through tutors starting from the second row
+            data.slice(1).forEach(row => {
+                const tutorName = row[0]; // Tutor name
+                const availability = row.slice(1); // Availability flags
+
+                const tutorItem = document.createElement('div');
+                tutorItem.className = 'tutor-item';
+                tutorItem.innerHTML = `<strong>${tutorName}</strong><div class="courses"></div>`;
+
+                const coursesDiv = tutorItem.querySelector('.courses');
+                availability.forEach((flag, index) => {
+                    if (flag === 'x') {
+                        const course = courses[index];
+                        const courseTag = document.createElement('span');
+                        courseTag.textContent = course + ' ';
+                        coursesDiv.appendChild(courseTag);
+                    }
+                });
+
+                tutorList.appendChild(tutorItem);
+            });
+        }
     </script>
 </body>
 </html>
-
 
