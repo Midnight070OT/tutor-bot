@@ -77,7 +77,10 @@
     <script>
         const tutorGrid = document.getElementById('tutor-grid');
         const courseGrid = document.getElementById('course-grid');
-        const tutorsData = {};
+        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+        // Load stored Excel data from localStorage if it exists
+        const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
 
         document.getElementById('file-input').addEventListener('change', event => {
             const file = event.target.files[0];
@@ -89,6 +92,8 @@
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
+                    // Store the Excel data in localStorage
+                    localStorage.setItem('excelData', JSON.stringify(jsonData));
                     renderTutorsAndCourses(jsonData);
                 };
                 reader.readAsArrayBuffer(file);
@@ -104,13 +109,17 @@
             data.slice(1).forEach(row => {
                 const tutorName = row[0];
                 if (!tutorName) return;
-                tutorsData[tutorName] = { available: false, sessions: 0 };
+
+                if (!tutorsData[tutorName]) {
+                    tutorsData[tutorName] = { available: false, sessions: 0 };
+                }
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
                 tutorItem.innerHTML = `
                     <label>
-                        <input type="checkbox" id="check-${tutorName}" onchange="toggleAvailability('${tutorName}')">
+                        <input type="checkbox" id="check-${tutorName}" ${tutorsData[tutorName].available ? 'checked' : ''} 
+                               onchange="toggleAvailability('${tutorName}')">
                         ${tutorName}
                     </label>
                 `;
@@ -123,10 +132,14 @@
                 courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
                 courseGrid.appendChild(courseItem);
             });
+
+            // Store updated tutorsData in localStorage
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
 
         function toggleAvailability(tutorName) {
             tutorsData[tutorName].available = !tutorsData[tutorName].available;
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
 
         function redirectToRecommendation(course) {
@@ -150,6 +163,11 @@
                 stats += `${name} - Sessions: ${data.sessions}\n`;
             }
             alert(stats);
+        }
+
+        // Render tutors and courses if data is already in localStorage
+        if (storedExcelData) {
+            renderTutorsAndCourses(storedExcelData);
         }
     </script>
 </body>
