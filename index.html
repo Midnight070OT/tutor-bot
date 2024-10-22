@@ -50,22 +50,6 @@
             background-color: #0056b3;
         }
 
-        .in-session {
-            background-color: orange;
-        }
-
-        .in-session:hover {
-            background-color: darkorange;
-        }
-
-        .done-session {
-            background-color: green;
-        }
-
-        .done-session:hover {
-            background-color: darkgreen;
-        }
-
         .stats-button {
             margin-top: 20px;
             background-color: red;
@@ -93,7 +77,7 @@
     <script>
         const tutorGrid = document.getElementById('tutor-grid');
         const courseGrid = document.getElementById('course-grid');
-        const tutorsData = {};  // Track tutors and their stats
+        const tutorsData = {};
 
         document.getElementById('file-input').addEventListener('change', event => {
             const file = event.target.files[0];
@@ -117,11 +101,10 @@
 
             const courses = data[0].slice(1).filter(Boolean);
 
-            // Render Tutors
             data.slice(1).forEach(row => {
                 const tutorName = row[0];
                 if (!tutorName) return;
-                tutorsData[tutorName] = { available: false, sessions: 0, inSession: false };
+                tutorsData[tutorName] = { available: false, sessions: 0 };
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
@@ -130,44 +113,25 @@
                         <input type="checkbox" id="check-${tutorName}" onchange="toggleAvailability('${tutorName}')">
                         ${tutorName}
                     </label>
-                    <button class="in-session" onclick="markInSession('${tutorName}')">In Session</button>
-                    <button class="done-session" onclick="markSessionDone('${tutorName}')">Session Done</button>
                 `;
                 tutorGrid.appendChild(tutorItem);
             });
 
-            // Render Courses
             courses.forEach(course => {
                 const courseItem = document.createElement('div');
                 courseItem.className = 'course-item';
-                courseItem.innerHTML = `<button onclick="assignTutor('${course}')">${course}</button>`;
+                courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
                 courseGrid.appendChild(courseItem);
             });
         }
 
         function toggleAvailability(tutorName) {
-            const tutor = tutorsData[tutorName];
-            tutor.available = !tutor.available;
-            console.log(`${tutorName} availability: ${tutor.available}`);
+            tutorsData[tutorName].available = !tutorsData[tutorName].available;
         }
 
-        function markInSession(tutorName) {
-            const tutor = tutorsData[tutorName];
-            tutor.inSession = true;
-            tutor.available = false;
-            document.getElementById(`check-${tutorName}`).checked = false;
-            alert(`${tutorName} is now in a session.`);
-        }
-
-        function markSessionDone(tutorName) {
-            const tutor = tutorsData[tutorName];
-            tutor.inSession = false;
-            alert(`${tutorName} has completed their session.`);
-        }
-
-        function assignTutor(course) {
+        function redirectToRecommendation(course) {
             const availableTutors = Object.entries(tutorsData)
-                .filter(([name, data]) => data.available && !data.inSession)
+                .filter(([name, data]) => data.available)
                 .sort((a, b) => a[1].sessions - b[1].sessions);
 
             if (availableTutors.length === 0) {
@@ -176,15 +140,8 @@
             }
 
             const [tutorName] = availableTutors[0];
-            const confirmAction = confirm(`${tutorName} assigned to ${course}. Accept session?`);
-
-            if (confirmAction) {
-                tutorsData[tutorName].sessions++;
-                tutorsData[tutorName].available = false;
-                alert(`${tutorName} accepted the session.`);
-            } else {
-                alert(`${tutorName} declined the session.`);
-            }
+            const params = new URLSearchParams({ course, tutor: tutorName });
+            window.location.href = `recommendation.html?${params.toString()}`;
         }
 
         function showStats() {
