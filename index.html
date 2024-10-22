@@ -38,6 +38,20 @@
         .courses {
             margin-top: 10px;
         }
+
+        button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -70,7 +84,7 @@
                     const worksheet = workbook.Sheets[firstSheetName];
 
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    console.log(jsonData); // Debugging log to inspect the parsed data
+                    console.log(jsonData);  // Debugging log to inspect the parsed data
 
                     renderTutors(jsonData);
                 };
@@ -81,7 +95,7 @@
         function renderTutors(data) {
             tutorList.innerHTML = '';  // Clear previous content
 
-            const courses = data[0].slice(1).filter(course => course); // Extract course names
+            const courses = data[0].slice(1).filter(course => course);  // Extract valid course names
             console.log('Courses:', courses);  // Log courses for debugging
 
             // Loop through each tutor row (starting from the second row)
@@ -89,7 +103,7 @@
                 const tutorName = row[0];  // Get the tutor's name
                 if (!tutorName) return;  // Skip empty rows
 
-                const availability = row.slice(1);  // Get availability flags for the tutor
+                const availability = row.slice(1);  // Get availability flags
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
@@ -99,14 +113,23 @@
                 availability.forEach((flag, index) => {
                     if (flag && flag.toLowerCase() === 'x' && courses[index]) {
                         const course = courses[index];
-                        const courseTag = document.createElement('span');
-                        courseTag.textContent = course + ' ';
-                        coursesDiv.appendChild(courseTag);
+
+                        // Create a button for each available course
+                        const courseButton = document.createElement('button');
+                        courseButton.textContent = course;
+                        courseButton.onclick = () => handleCourseClick(tutorName, course);
+
+                        coursesDiv.appendChild(courseButton);
                     }
                 });
 
                 tutorList.appendChild(tutorItem);
             });
+        }
+
+        // Function to handle course button clicks
+        function handleCourseClick(tutorName, course) {
+            alert(`${tutorName} is available for ${course}`);
         }
     </script>
 </body>
