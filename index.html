@@ -64,22 +64,10 @@
             cursor: pointer;
             font-weight: bold;
             margin-top: 5px;
-            transition: background-color 0.3s ease;
         }
 
         button:hover {
             background-color: #f77f00;
-        }
-
-        .stats-button {
-            margin-top: 20px;
-            width: 100%;
-            background-color: #f77f00;
-        }
-
-        .file-upload input {
-            display: block;
-            margin: 10px 0;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -101,8 +89,6 @@
 
         <h2>Courses</h2>
         <div class="course-grid" id="course-grid"></div>
-
-        <button class="stats-button" id="view-stats">View Statistics</button>
     </div>
 
     <script>
@@ -110,7 +96,6 @@
             const tutorGrid = document.querySelector('#tutor-grid');
             const courseGrid = document.querySelector('#course-grid');
             const fileInput = document.querySelector('#file-input');
-            const viewStatsButton = document.querySelector('#view-stats');
 
             let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
             const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
@@ -136,8 +121,6 @@
                 }
             });
 
-            viewStatsButton.addEventListener('click', showStats);
-
             function renderTutorsAndCourses(data) {
                 tutorGrid.innerHTML = '';
                 courseGrid.innerHTML = '';
@@ -156,82 +139,33 @@
                     tutorItem.className = 'tutor-item';
                     tutorItem.innerHTML = `
                         <label>
-                            <input type="checkbox" id="check-${tutorName}">
+                            <input type="checkbox" id="check-${tutorName}" onchange="toggleAvailability('${tutorName}')">
                             ${tutorName}
                         </label>
-                        <button class="mark-session" data-tutor="${tutorName}">Mark In Session</button>
-                        <button class="end-session" data-tutor="${tutorName}">End Session</button>
                     `;
                     tutorGrid.appendChild(tutorItem);
-                });
-
-                document.querySelectorAll('.mark-session').forEach(button => {
-                    button.addEventListener('click', event => {
-                        markInSession(event.target.dataset.tutor);
-                    });
-                });
-
-                document.querySelectorAll('.end-session').forEach(button => {
-                    button.addEventListener('click', event => {
-                        markSessionDone(event.target.dataset.tutor);
-                    });
                 });
 
                 courses.forEach(course => {
                     const courseItem = document.createElement('div');
                     courseItem.className = 'course-item';
-                    courseItem.innerHTML = `<button class="assign-tutor" data-course="${course}">${course}</button>`;
+                    courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
                     courseGrid.appendChild(courseItem);
                 });
 
-                document.querySelectorAll('.assign-tutor').forEach(button => {
-                    button.addEventListener('click', event => {
-                        assignTutor(event.target.dataset.course);
-                    });
-                });
-
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             }
 
-            function toggleAvailability(tutorName) {
+            window.redirectToRecommendation = function(course) {
+                const url = `recommendation.html?course=${encodeURIComponent(course)}`;
+                window.location.href = url;
+            };
+
+            window.toggleAvailability = function(tutorName) {
                 const tutor = tutorsData[tutorName];
                 tutor.available = !tutor.available;
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-            }
-
-            function markInSession(tutorName) {
-                const tutor = tutorsData[tutorName];
-                if (!tutor.available) return;
-                tutor.inSession = true;
-                tutor.available = false;
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-            }
-
-            function markSessionDone(tutorName) {
-                const tutor = tutorsData[tutorName];
-                tutor.inSession = false;
-                tutor.available = true;
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-            }
-
-            function assignTutor(course) {
-                const availableTutors = Object.entries(tutorsData).filter(
-                    ([name, data]) => data.available && !data.inSession
-                ).sort((a, b) => a[1].sessions - b[1].sessions);
-
-                if (availableTutors.length === 0) {
-                    alert(`No tutors available for ${course}`);
-                    return;
-                }
-
-                const [tutorName] = availableTutors[0];
-                const confirmAction = confirm(`${tutorName} assigned to ${course}. Accept session?`);
-                if (confirmAction) markInSession(tutorName);
-            }
-
-            function showStats() {
-                alert(JSON.stringify(tutorsData, null, 2));
-            }
+            };
         });
     </script>
 </body>
