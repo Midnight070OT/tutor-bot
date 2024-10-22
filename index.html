@@ -113,15 +113,16 @@
             data.slice(1).forEach(row => {
                 const tutorName = row[0];
                 if (!tutorName) return;
-                tutorsData[tutorName] = { available: false, sessions: 0 };
+                tutorsData[tutorName] = { available: false, sessions: 0, inSession: false };
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
                 tutorItem.innerHTML = `
                     <label>
-                        <input type="checkbox" onchange="toggleAvailability('${tutorName}')">
+                        <input type="checkbox" id="check-${tutorName}" onchange="toggleAvailability('${tutorName}')">
                         ${tutorName}
                     </label>
+                    <button class="in-session" onclick="markInSession('${tutorName}')">In Session</button>
                 `;
                 tutorGrid.appendChild(tutorItem);
             });
@@ -136,12 +137,22 @@
         }
 
         function toggleAvailability(tutorName) {
-            tutorsData[tutorName].available = !tutorsData[tutorName].available;
+            const tutor = tutorsData[tutorName];
+            tutor.available = !tutor.available;
+            console.log(`${tutorName} availability: ${tutor.available}`);
+        }
+
+        function markInSession(tutorName) {
+            const tutor = tutorsData[tutorName];
+            tutor.inSession = true;
+            tutor.available = false;  // Uncheck the availability
+            document.getElementById(`check-${tutorName}`).checked = false;
+            alert(`${tutorName} is now in a session and marked as unavailable.`);
         }
 
         function assignTutor(course) {
             const availableTutors = Object.entries(tutorsData)
-                .filter(([name, data]) => data.available)
+                .filter(([name, data]) => data.available && !data.inSession)
                 .sort((a, b) => a[1].sessions - b[1].sessions);
 
             if (availableTutors.length === 0) {
