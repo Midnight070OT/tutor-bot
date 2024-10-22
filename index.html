@@ -1,141 +1,139 @@
 <script>
-    const tutorGrid = document.getElementById('tutor-grid');
-    const courseGrid = document.getElementById('course-grid');
-    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-    const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
+    document.addEventListener('DOMContentLoaded', () => {
+        const tutorGrid = document.getElementById('tutor-grid');
+        const courseGrid = document.getElementById('course-grid');
+        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
 
-    // Load the data when the page is loaded or reloaded
-    window.addEventListener('load', () => {
+        // Load the data when the page is loaded or reloaded
         if (storedExcelData) {
             renderTutorsAndCourses(storedExcelData);
         }
-    });
 
-    document.getElementById('file-input').addEventListener('change', event => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        document.getElementById('file-input').addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                localStorage.setItem('excelData', JSON.stringify(jsonData));
-                renderTutorsAndCourses(jsonData);
-            };
-            reader.readAsArrayBuffer(file);
+                    localStorage.setItem('excelData', JSON.stringify(jsonData));
+                    renderTutorsAndCourses(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function renderTutorsAndCourses(data) {
+            tutorGrid.innerHTML = '';
+            courseGrid.innerHTML = '';
+
+            const courses = data[0].slice(1).filter(Boolean);
+
+            data.slice(1).forEach(row => {
+                const tutorName = row[0];
+                if (!tutorName) return;
+
+                if (!tutorsData[tutorName]) {
+                    tutorsData[tutorName] = { available: false, sessions: 0, inSession: false };
+                }
+
+                const tutorItem = document.createElement('div');
+                tutorItem.className = 'tutor-item';
+                tutorItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="check-${tutorName}" ${tutorsData[tutorName].available ? 'checked' : ''} 
+                               onchange="toggleAvailability('${tutorName}')">
+                        ${tutorName}
+                    </label>
+                    <button onclick="markInSession('${tutorName}')">Mark In Session</button>
+                    <button onclick="markSessionDone('${tutorName}')">End Session</button>
+                `;
+                tutorGrid.appendChild(tutorItem);
+            });
+
+            courses.forEach(course => {
+                const courseItem = document.createElement('div');
+                courseItem.className = 'course-item';
+                courseItem.innerHTML = `<button onclick="assignTutor('${course}')">${course}</button>`;
+                courseGrid.appendChild(courseItem);
+            });
+
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
-    });
 
-    function renderTutorsAndCourses(data) {
-        tutorGrid.innerHTML = '';
-        courseGrid.innerHTML = '';
+        function toggleAvailability(tutorName) {
+            const tutor = tutorsData[tutorName];
 
-        const courses = data[0].slice(1).filter(Boolean);
-
-        data.slice(1).forEach(row => {
-            const tutorName = row[0];
-            if (!tutorName) return;
-
-            // Ensure tutor data exists with proper structure
-            if (!tutorsData[tutorName]) {
-                tutorsData[tutorName] = { available: false, sessions: 0, inSession: false };
+            if (tutor.inSession) {
+                alert(`${tutorName} is currently in a session and cannot change availability.`);
+                document.getElementById(`check-${tutorName}`).checked = false;
+                return;
             }
 
-            const tutorItem = document.createElement('div');
-            tutorItem.className = 'tutor-item';
-            tutorItem.innerHTML = `
-                <label>
-                    <input type="checkbox" id="check-${tutorName}" ${tutorsData[tutorName].available ? 'checked' : ''} 
-                           onchange="toggleAvailability('${tutorName}')">
-                    ${tutorName}
-                </label>
-                <button onclick="markInSession('${tutorName}')">Mark In Session</button>
-                <button onclick="markSessionDone('${tutorName}')">End Session</button>
-            `;
-            tutorGrid.appendChild(tutorItem);
-        });
+            tutor.available = !tutor.available;
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        }
 
-        courses.forEach(course => {
-            const courseItem = document.createElement('div');
-            courseItem.className = 'course-item';
-            courseItem.innerHTML = `<button onclick="assignTutor('${course}')">${course}</button>`;
-            courseGrid.appendChild(courseItem);
-        });
+        function markInSession(tutorName) {
+            const tutor = tutorsData[tutorName];
 
-        // Persist the updated tutors data
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    }
+            if (!tutor.available) {
+                alert(`${tutorName} must be available to start a session.`);
+                return;
+            }
 
-    function toggleAvailability(tutorName) {
-        const tutor = tutorsData[tutorName];
-
-        if (tutor.inSession) {
-            alert(`${tutorName} is currently in a session and cannot change availability.`);
+            tutor.inSession = true;
+            tutor.available = false;
             document.getElementById(`check-${tutorName}`).checked = false;
-            return;
+            alert(`${tutorName} is now in session.`);
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
 
-        tutor.available = !tutor.available;
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    }
-
-    function markInSession(tutorName) {
-        const tutor = tutorsData[tutorName];
-
-        if (!tutor.available) {
-            alert(`${tutorName} must be available to start a session.`);
-            return;
+        function markSessionDone(tutorName) {
+            const tutor = tutorsData[tutorName];
+            tutor.inSession = false;
+            tutor.available = true;
+            document.getElementById(`check-${tutorName}`).checked = true;
+            alert(`${tutorName} has completed their session.`);
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
 
-        tutor.inSession = true;
-        tutor.available = false;
-        document.getElementById(`check-${tutorName}`).checked = false;
-        alert(`${tutorName} is now in session.`);
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    }
+        function assignTutor(course) {
+            const availableTutors = Object.entries(tutorsData)
+                .filter(([name, data]) => data.available && !data.inSession)
+                .sort((a, b) => a[1].sessions - b[1].sessions);
 
-    function markSessionDone(tutorName) {
-        const tutor = tutorsData[tutorName];
-        tutor.inSession = false;
-        tutor.available = true;
-        document.getElementById(`check-${tutorName}`).checked = true;
-        alert(`${tutorName} has completed their session.`);
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    }
+            if (availableTutors.length === 0) {
+                alert(`No tutors available for ${course}`);
+                return;
+            }
 
-    function assignTutor(course) {
-        const availableTutors = Object.entries(tutorsData)
-            .filter(([name, data]) => data.available && !data.inSession)
-            .sort((a, b) => a[1].sessions - b[1].sessions);
+            const [tutorName] = availableTutors[0];
+            const confirmAction = confirm(`${tutorName} assigned to ${course}. Accept session?`);
 
-        if (availableTutors.length === 0) {
-            alert(`No tutors available for ${course}`);
-            return;
+            if (confirmAction) {
+                tutorsData[tutorName].sessions++;
+                tutorsData[tutorName].available = false;
+                tutorsData[tutorName].inSession = true;
+                document.getElementById(`check-${tutorName}`).checked = false;
+                alert(`${tutorName} accepted the session.`);
+            } else {
+                alert(`${tutorName} declined the session.`);
+            }
+
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         }
 
-        const [tutorName] = availableTutors[0];
-        const confirmAction = confirm(`${tutorName} assigned to ${course}. Accept session?`);
-
-        if (confirmAction) {
-            tutorsData[tutorName].sessions++;
-            tutorsData[tutorName].available = false;
-            tutorsData[tutorName].inSession = true;
-            document.getElementById(`check-${tutorName}`).checked = false;
-            alert(`${tutorName} accepted the session.`);
-        } else {
-            alert(`${tutorName} declined the session.`);
+        function showStats() {
+            let stats = 'Tutor Stats:\n';
+            for (const [name, data] of Object.entries(tutorsData)) {
+                stats += `${name} - Sessions: ${data.sessions}, In Session: ${data.inSession ? 'Yes' : 'No'}\n`;
+            }
+            alert(stats);
         }
-
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    }
-
-    function showStats() {
-        let stats = 'Tutor Stats:\n';
-        for (const [name, data] of Object.entries(tutorsData)) {
-            stats += `${name} - Sessions: ${data.sessions}, In Session: ${data.inSession ? 'Yes' : 'No'}\n`;
-        }
-        alert(stats);
-    }
+    });
 </script>
