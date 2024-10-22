@@ -38,6 +38,7 @@
             const tutorName = row[0];
             if (!tutorName) return;
 
+            // Ensure tutor data exists with proper structure
             if (!tutorsData[tutorName]) {
                 tutorsData[tutorName] = { available: false, sessions: 0, inSession: false };
             }
@@ -63,22 +64,31 @@
             courseGrid.appendChild(courseItem);
         });
 
+        // Persist the updated tutors data
         localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
     }
 
     function toggleAvailability(tutorName) {
         const tutor = tutorsData[tutorName];
+
+        if (tutor.inSession) {
+            alert(`${tutorName} is currently in a session and cannot change availability.`);
+            document.getElementById(`check-${tutorName}`).checked = false;
+            return;
+        }
+
         tutor.available = !tutor.available;
-        tutor.inSession = false; // Reset session status when availability changes
         localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
     }
 
     function markInSession(tutorName) {
         const tutor = tutorsData[tutorName];
+
         if (!tutor.available) {
             alert(`${tutorName} must be available to start a session.`);
             return;
         }
+
         tutor.inSession = true;
         tutor.available = false;
         document.getElementById(`check-${tutorName}`).checked = false;
