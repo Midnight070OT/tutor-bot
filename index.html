@@ -1,5 +1,121 @@
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TSC Tutor Availability and Course Assignment</title>
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1b2363;
+            margin: 0;
+            padding: 0;
+            color: white;
+        }
+
+        /* Header Styling */
+        .header {
+            display: flex;
+            align-items: center;
+            background-color: #1b2363;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .header img {
+            height: 50px;
+            margin-right: 15px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        /* Main Container */
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            color: #1b2363;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Grid Layouts */
+        .tutor-grid, .course-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .tutor-item, .course-item {
+            width: 30%;
+            margin-bottom: 15px;
+        }
+
+        /* Checkbox Styling */
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        /* Button Styling */
+        button {
+            padding: 10px;
+            background-color: #fcbf49;
+            color: #1b2363;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #f77f00;
+        }
+
+        .stats-button {
+            margin-top: 20px;
+            width: 100%;
+            background-color: #f77f00;
+        }
+
+        /* File Upload Styling */
+        .file-upload input {
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <img src="assets/images/TSC-Logo.png" alt="TSC Logo" />
+        <h1>TSC Tutor Availability and Course Assignment</h1>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <h2>Upload Tutor Schedule</h2>
+        <div class="file-upload">
+            <input type="file" id="file-input" />
+        </div>
+
+        <h2>Tutors</h2>
+        <div class="tutor-grid" id="tutor-grid"></div>
+
+        <h2>Courses</h2>
+        <div class="course-grid" id="course-grid"></div>
+
+        <button class="stats-button" onclick="showStats()">View Statistics</button>
+    </div>
+
+    <!-- JavaScript: Placed at the bottom to ensure DOM elements are loaded -->
+    <script>
         console.log("DOM fully loaded and parsed.");
 
         const tutorGrid = document.getElementById('tutor-grid');
@@ -11,7 +127,6 @@
         console.log("courseGrid:", courseGrid);
         console.log("fileInput:", fileInput);
 
-        // Handle case where elements might not be found
         if (!tutorGrid || !courseGrid || !fileInput) {
             console.error("Error: One or more required elements were not found in the DOM.");
             return;
@@ -42,8 +157,6 @@
         });
 
         function renderTutorsAndCourses(data) {
-            console.log("Rendering tutors and courses...");
-
             tutorGrid.innerHTML = '';
             courseGrid.innerHTML = '';
 
@@ -151,5 +264,4 @@
             }
             alert(stats);
         }
-    });
-</script>
+    </script>
