@@ -70,7 +70,7 @@
                     const worksheet = workbook.Sheets[firstSheetName];
 
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    console.log(jsonData);  // Log the data to the console for debugging
+                    console.log(jsonData); // Debugging log to inspect the parsed data
 
                     renderTutors(jsonData);
                 };
@@ -81,14 +81,15 @@
         function renderTutors(data) {
             tutorList.innerHTML = '';  // Clear previous content
 
-            const courses = data[0].slice(1).filter(course => course);
+            const courses = data[0].slice(1).filter(course => course); // Extract course names
             console.log('Courses:', courses);  // Log courses for debugging
 
+            // Loop through each tutor row (starting from the second row)
             data.slice(1).forEach(row => {
-                const tutorName = row[0];
+                const tutorName = row[0];  // Get the tutor's name
                 if (!tutorName) return;  // Skip empty rows
 
-                const availability = row.slice(1);
+                const availability = row.slice(1);  // Get availability flags for the tutor
 
                 const tutorItem = document.createElement('div');
                 tutorItem.className = 'tutor-item';
@@ -96,7 +97,7 @@
 
                 const coursesDiv = tutorItem.querySelector('.courses');
                 availability.forEach((flag, index) => {
-                    if (flag === 'x' && courses[index]) {
+                    if (flag && flag.toLowerCase() === 'x' && courses[index]) {
                         const course = courses[index];
                         const courseTag = document.createElement('span');
                         courseTag.textContent = course + ' ';
@@ -110,4 +111,3 @@
     </script>
 </body>
 </html>
-
