@@ -2,53 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TSC Tutor Availability and Course Assignment</title>
+    <title>Tutor Availability and Course Assignment</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             background-color: #1b2363;
-            color: white;
             margin: 0;
-            padding: 0;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            background-color: #1b2363;
-            padding: 10px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .header img {
-            height: 50px;
-            margin-right: 15px;
+            padding: 20px;
+            color: white;
         }
 
         .container {
             width: 90%;
-            margin: 20px auto;
-            background-color: white;
-            color: #1b2363;
+            margin: 0 auto;
+            background-color: #9395a7;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .course-grid, .tutor-grid {
+        .tutor-grid, .course-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
         }
 
-        .course-item, .tutor-item {
+        .tutor-item, .course-item {
             width: 30%;
             margin-bottom: 15px;
         }
 
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
         button {
             padding: 10px;
-            background-color: #fcbf49;
-            color: #1b2363;
+            background-color: #007bff;
+            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -56,111 +47,126 @@
         }
 
         button:hover {
-            background-color: #f77f00;
+            background-color: #0056b3;
+        }
+
+        .stats-button {
+            margin-top: 20px;
+            background-color: red;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="header">
-        <img src="thumbnail_Outlook-z4fxicdb.png" alt="TSC Logo" />
-        <h1>TSC Tutor Availability and Course Assignment</h1>
-    </div>
-
     <div class="container">
-        <h2>Upload Tutor Schedule</h2>
-        <input type="file" id="file-input" />
+        <h1>Tutor Availability and Course Assignment</h1>
+
+        <div class="file-upload">
+            <input type="file" id="file-input" />
+        </div>
+
+        <h2>Tutors</h2>
+        <div class="tutor-grid" id="tutor-grid"></div>
 
         <h2>Courses</h2>
-        <div id="course-grid" class="course-grid"></div>
+        <div class="course-grid" id="course-grid"></div>
 
-        <button id="view-stats">View Stats</button>
-        <div id="stats-output"></div>
+        <button class="stats-button" onclick="showStats()">View Statistics</button>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const courseGrid = document.querySelector('#course-grid');
-            const fileInput = document.querySelector('#file-input');
-            const statsOutput = document.querySelector('#stats-output');
-            let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        const tutorGrid = document.getElementById('tutor-grid');
+        const courseGrid = document.getElementById('course-grid');
+        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        const storedExcelData = JSON.parse(localStorage.getItem('excelData')) || null;
 
-            fileInput.addEventListener('change', handleFileUpload);
+        // Load the data when the page is loaded or reloaded
+        window.addEventListener('load', () => {
+            if (storedExcelData) {
+                renderTutorsAndCourses(storedExcelData);
+            }
+        });
 
-            function handleFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
+        document.getElementById('file-input').addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = e => {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    populateData(jsonData);
+                    localStorage.setItem('excelData', JSON.stringify(jsonData));
+                    renderTutorsAndCourses(jsonData);
                 };
                 reader.readAsArrayBuffer(file);
             }
+        });
 
-            function populateData(data) {
-                const courses = data[0].slice(1).filter(Boolean); // Extract course names from the header
-                tutorsData = {}; // Reset tutorsData
+        function renderTutorsAndCourses(data) {
+            tutorGrid.innerHTML = '';
+            courseGrid.innerHTML = '';
 
-                // Populate tutors from Excel rows
-                data.slice(1).forEach(row => {
-                    const tutorName = row[0];
-                    if (tutorName) {
-                        tutorsData[tutorName] = { available: true, sessions: 0 };
-                    }
-                });
+            const courses = data[0].slice(1).filter(Boolean);
 
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-                renderCourses(courses);
-            }
+            data.slice(1).forEach(row => {
+                const tutorName = row[0];
+                if (!tutorName) return;
 
-            function renderCourses(courses) {
-                courseGrid.innerHTML = ''; // Clear previous content
-
-                courses.forEach(course => {
-                    const courseItem = document.createElement('div');
-                    courseItem.className = 'course-item';
-                    courseItem.innerHTML = `
-                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
-                    `;
-                    courseGrid.appendChild(courseItem);
-                });
-            }
-
-            window.redirectToRecommendation = function(course) {
-                const availableTutors = Object.entries(tutorsData)
-                    .filter(([name, data]) => data.available)
-                    .sort((a, b) => a[1].sessions - b[1].sessions);
-
-                if (availableTutors.length === 0) {
-                    alert('No tutors available.');
-                    return;
+                if (!tutorsData[tutorName]) {
+                    tutorsData[tutorName] = { available: false, sessions: 0 };
                 }
 
-                const [tutorName] = availableTutors[0];
-                const url = `recommendation.html?course=${encodeURIComponent(course)}&tutor=${encodeURIComponent(tutorName)}`;
-                window.location.href = url;
-            };
+                const tutorItem = document.createElement('div');
+                tutorItem.className = 'tutor-item';
+                tutorItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="check-${tutorName}" ${tutorsData[tutorName].available ? 'checked' : ''} 
+                               onchange="toggleAvailability('${tutorName}')">
+                        ${tutorName}
+                    </label>
+                `;
+                tutorGrid.appendChild(tutorItem);
+            });
 
-            document.querySelector('#view-stats').addEventListener('click', showStats);
+            courses.forEach(course => {
+                const courseItem = document.createElement('div');
+                courseItem.className = 'course-item';
+                courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
+                courseGrid.appendChild(courseItem);
+            });
 
-            function showStats() {
-                const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-                let statsHtml = '<h3>Tutor Stats</h3><ul>';
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        }
 
-                Object.entries(tutorsData).forEach(([name, data]) => {
-                    statsHtml += `<li>${name}: ${data.sessions} sessions</li>`;
-                });
+        function toggleAvailability(tutorName) {
+            tutorsData[tutorName].available = !tutorsData[tutorName].available;
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        }
 
-                statsHtml += '</ul>';
-                statsOutput.innerHTML = statsHtml;
+        function redirectToRecommendation(course) {
+            const availableTutors = Object.entries(tutorsData)
+                .filter(([name, data]) => data.available)
+                .sort((a, b) => a[1].sessions - b[1].sessions);
+
+            if (availableTutors.length === 0) {
+                alert(`No tutors available for ${course}`);
+                return;
             }
-        });
+
+            const [tutorName] = availableTutors[0];
+            const params = new URLSearchParams({ course, tutor: tutorName });
+            window.location.href = `recommendation.html?${params.toString()}`;
+        }
+
+        function showStats() {
+            let stats = 'Tutor Stats:\n';
+            for (const [name, data] of Object.entries(tutorsData)) {
+                stats += `${name} - Sessions: ${data.sessions}\n`;
+            }
+            alert(stats);
+        }
     </script>
 </body>
 </html>
