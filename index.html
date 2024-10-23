@@ -150,28 +150,30 @@
             }
 
             function renderTutors() {
-                tutorGrid.innerHTML = ''; // Clear previous content
+    tutorGrid.innerHTML = ''; // Clear previous content
 
-                Object.entries(tutorsData).forEach(([name, data]) => {
-                    const tutorItem = document.createElement('div');
-                    tutorItem.className = 'tutor-item';
-                    tutorItem.innerHTML = `
-                        <label>
-                            <input type="checkbox" id="check-${name}" ${data.available ? 'checked' : ''} 
-                                   onchange="toggleAvailability('${name}')">
-                            ${name} (Sessions: ${data.sessions}) - Courses: ${data.courses.join(', ')}
-                        </label>
-                    `;
-                    tutorGrid.appendChild(tutorItem);
-                });
-            }
+    Object.entries(tutorsData).forEach(([name, data]) => {
+        const tutorCourses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
 
-            window.toggleAvailability = function(tutorName) {
-                const tutor = tutorsData[tutorName];
-                tutor.available = !tutor.available; // Toggle availability
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
-                renderTutors(); // Re-render tutors to reflect changes
-            };
+        const tutorItem = document.createElement('div');
+        tutorItem.className = 'tutor-item';
+        tutorItem.innerHTML = `
+            <label>
+                <input type="checkbox" id="check-${name}" ${data.available ? 'checked' : ''} 
+                       onchange="toggleAvailability('${name}')">
+                ${name} (Sessions: ${data.sessions}) - Courses: ${tutorCourses.join(', ')}
+            </label>
+        `;
+        tutorGrid.appendChild(tutorItem);
+    });
+}
+
+window.toggleAvailability = function(tutorName) {
+    const tutor = tutorsData[tutorName];
+    tutor.available = !tutor.available; // Toggle availability
+    localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
+    renderTutors(); // Re-render tutors to reflect changes
+};
 
             function renderCourses(courses) {
                 courseGrid.innerHTML = ''; // Clear previous content
