@@ -126,21 +126,35 @@
             }
 
             function populateData(data) {
-                courses = data[0].slice(1).filter(Boolean); // Extract course names
-                tutorsData = {}; // Reset tutors data
+    console.log('Raw Data from Excel:', data); // Debugging: Check the raw data
 
-                data.slice(1).forEach(row => {
-                    const tutorName = row[0];
-                    if (!tutorName) return;
+    const courseNames = data[0].slice(1).filter(Boolean); // Extract course names from the header row
+    tutorsData = {}; // Reset tutors data
 
-                    const tutorCourses = row.slice(1)
-                        .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
-                        .filter(Boolean); // Extract only courses marked with "x"
+    data.slice(1).forEach(row => {
+        const tutorName = row[0];
+        if (!tutorName) return; // Skip empty tutor names
 
-                    tutorsData[tutorName] = { 
-                        available: true, 
-                        sessions: 0,  
-                    };
+        // Map courses based on "x" markers in the row
+        const tutorCourses = row.slice(1)
+            .map((value, index) => value.toLowerCase() === 'x' ? courseNames[index] : null)
+            .filter(Boolean); // Remove null values
+
+        console.log(`Tutor: ${tutorName}, Courses: ${tutorCourses}`); // Debugging: Check tutor assignments
+
+        tutorsData[tutorName] = { 
+            available: true, 
+            sessions: 0, 
+            courses: tutorCourses 
+        };
+    });
+
+    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+    localStorage.setItem('courses', JSON.stringify(courseNames)); // Save courses to localStorage
+    renderTutors(); // Render tutors after populating data
+    renderCourses(courseNames); // Render courses
+}
+
                 });
 
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
