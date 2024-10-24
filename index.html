@@ -125,7 +125,7 @@
                 reader.readAsArrayBuffer(file);
             }
 
-            function populateData(data) {
+function populateData(data) {
     console.log('Raw Data from Excel:', data); // Debugging: Check the raw data
 
     const courseNames = data[0].slice(1).filter(Boolean); // Extract course names from the header row
@@ -155,13 +155,7 @@
     renderCourses(courseNames); // Render courses
 }
 
-                });
 
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-                localStorage.setItem('courses', JSON.stringify(courses)); // Save courses to localStorage
-                renderTutors(); // Render tutors after populating data
-                renderCourses(courses);
-            }
 
             function renderTutors() {
     tutorGrid.innerHTML = ''; // Clear previous content
