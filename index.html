@@ -65,7 +65,7 @@
 <body>
     <div class="header">
         <img src="thumbnail_Outlook-z4fxicdb.png" alt="TSC Logo" />
-        <h1>TSC Tutor Availability and Course Assignment</h1>
+        <h1>TSC Tutor Assignment</h1>
     </div>
 
     <div class="container">
@@ -161,7 +161,7 @@
             <label>
                 <input type="checkbox" id="check-${name}" ${data.available ? 'checked' : ''} 
                        onchange="toggleAvailability('${name}')">
-                ${name} (Sessions: ${data.sessions}) - Courses: ${tutorCourses.join(', ')}
+                ${name} (Sessions: ${data.sessions})
             </label>
         `;
         tutorGrid.appendChild(tutorItem);
