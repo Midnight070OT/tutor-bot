@@ -250,20 +250,20 @@ window.toggleAvailability = function(tutorName) {
 
             document.querySelector('#view-stats').addEventListener('click', showStats);
 
-    /*function showStats() {
-    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-    let statsHtml = '<h3>Tutor Stats</h3><ul>';
+    //function showStats() {
+    //const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    //let statsHtml = '<h3>Tutor Stats</h3><ul>';
 
-    Object.entries(tutorsData).forEach(([name, data]) => {
-        const tutorCourses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
-        statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${tutorCourses.join(', ')}</li>`;
-    });
+    //Object.entries(tutorsData).forEach(([name, data]) => {
+    //    const tutorCourses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
+    //    statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${tutorCourses.join(', ')}</li>`;
+    //});
 
-    statsHtml += '</ul>';
-    statsOutput.innerHTML = statsHtml;
-}
+    //statsHtml += '</ul>';
+    //statsOutput.innerHTML = statsHtml;
+//}
 
-        });
+  //      });
     </script>
 </body>
 </html>
