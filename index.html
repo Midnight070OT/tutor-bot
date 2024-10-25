@@ -211,14 +211,13 @@ function showStats() {
         const courses = Array.isArray(data.courses) ? data.courses : [];
         statsHtml += `<li>${name}: 
             ${data.sessions} sessions, 
-            ${data.declinedSessions} declined sessions, 
+            ${data.declinedSessions || 0} declined sessions, 
             Courses: ${courses.join(', ') || 'None'}</li>`;
     });
 
     statsHtml += '</ul>';
     statsOutput.innerHTML = statsHtml;
 }
-
     </script>
 </body>
 </html>
