@@ -93,18 +93,19 @@
 
         function declineSession() {
             const tutorName = document.getElementById('tutor-name').textContent.trim();
-            console.log(`Declining session for: ${tutorName}`); // Debug log
+            console.log(`Declining session for: ${tutorName}`); // Debugging
 
-            // Ensure we have the latest data from localStorage
+            // Load latest tutorsData from localStorage
             tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
             if (tutorsData[tutorName]) {
                 tutorsData[tutorName].declinedSessions = (tutorsData[tutorName].declinedSessions || 0) + 1;
+                tutorsData[tutorName].available = false; // Mark tutor unavailable
 
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-                console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debug log
+                console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debugging
             } else {
-                console.error(`Tutor ${tutorName} not found!`); // Error log if tutor is missing
+                console.error(`Tutor ${tutorName} not found!`);
             }
 
             alert(`${tutorName} declined the session. Finding another tutor...`);
