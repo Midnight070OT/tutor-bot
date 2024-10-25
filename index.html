@@ -211,7 +211,7 @@ function showStats() {
         const courses = Array.isArray(data.courses) ? data.courses : [];
         statsHtml += `<li>${name}: 
             ${data.sessions} sessions, 
-            ${data.declinedSessions || 0} declined sessions, 
+            ${data.declinedSessions || 'No'} declined sessions, 
             Courses: ${courses.join(', ') || 'None'}</li>`;
     });
 
