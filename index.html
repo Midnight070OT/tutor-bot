@@ -123,20 +123,29 @@
         }
 
         function populateData(data) {
-            courses = data[0].slice(1).filter(Boolean);
-            tutorsData = {};
+    courses = data[0].slice(1).filter(Boolean); // Extract course names
+    tutorsData = {};
 
-            data.slice(1).forEach(row => {
-                const tutorName = row[0];
-                const tutorCourses = row.slice(1).map((v, i) => v.toLowerCase() === 'x' ? courses[i] : null).filter(Boolean);
-                tutorsData[tutorName] = { available: true, sessions: 0, courses: tutorCourses };
-            });
+    data.slice(1).forEach(row => {
+        const tutorName = row[0];
+        const tutorCourses = row.slice(1)
+            .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
+            .filter(Boolean);
 
-            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-            localStorage.setItem('courses', JSON.stringify(courses));
-            renderTutors();
-            renderCourses(courses);
-        }
+        // Initialize the tutor with available sessions, courses, and declined sessions
+        tutorsData[tutorName] = {
+            available: true,
+            sessions: 0,
+            declinedSessions: 0, // Initialize declinedSessions counter
+            courses: tutorCourses
+        };
+    });
+
+    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+    localStorage.setItem('courses', JSON.stringify(courses));
+    renderTutors();
+    renderCourses(courses);
+}
 
         function renderTutors() {
             tutorGrid.innerHTML = '';
@@ -192,13 +201,18 @@ resetStatsButton.addEventListener('click', () => {
     }
 });
 
+
+// Add stats display for declined sessions
 function showStats() {
     const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
     let statsHtml = '<h3>Tutor Stats</h3><ul>';
 
     Object.entries(tutorsData).forEach(([name, data]) => {
-        const courses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
-        statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${courses.join(', ') || 'None'}</li>`;
+        const courses = Array.isArray(data.courses) ? data.courses : [];
+        statsHtml += `<li>${name}: 
+            ${data.sessions} sessions, 
+            ${data.declinedSessions} declined sessions, 
+            Courses: ${courses.join(', ') || 'None'}</li>`;
     });
 
     statsHtml += '</ul>';
