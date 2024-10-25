@@ -51,75 +51,76 @@
         const params = new URLSearchParams(window.location.search);
         const course = params.get('course');
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-        let suggestedTutors = []; // Track suggested tutors to avoid re-recommending
+        let recommendedTutors = new Set(); // Track recommended tutors to avoid duplicates
 
         document.getElementById('course-title').textContent = `Course: ${course}`;
 
-        console.log('Tutors Data:', tutorsData); // Debugging: Check tutors data on page load
+        console.log('Tutors Data on Load:', tutorsData); // Debugging: Check tutors data
 
         // Recommendation logic to filter and recommend tutors
-function recommendTutor() {
-    // Load the latest tutorsData from localStorage
-    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-    const course = new URLSearchParams(window.location.search).get('course');
+        function recommendTutor() {
+            tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-    const eligibleTutors = Object.entries(tutorsData)
-        .filter(([name, data]) => data.available && data.courses.includes(course))
-        .sort((a, b) => a[1].sessions - b[1].sessions);
+            const eligibleTutors = Object.entries(tutorsData)
+                .filter(([name, data]) => 
+                    data.available && 
+                    data.courses.includes(course) &&
+                    !recommendedTutors.has(name)
+                )
+                .sort((a, b) => a[1].sessions - b[1].sessions);
 
-    console.log('Eligible Tutors:', eligibleTutors); // Debug log
+            console.log('Eligible Tutors:', eligibleTutors); // Debug log
 
-    if (eligibleTutors.length === 0) {
-        alert(`No more tutors available for ${course}.`);
-        window.history.back(); // Go back if no tutors are left
-        return;
-    }
+            if (eligibleTutors.length === 0) {
+                alert(`No more tutors available for ${course}.`);
+                window.history.back(); // Go back if no tutors are left
+                return;
+            }
 
-    const [tutorName, tutorData] = eligibleTutors[0]; // Get the first eligible tutor
-    document.getElementById('tutor-name').textContent = tutorName; // Display recommended tutor
-    console.log(`Recommended Tutor: ${tutorName}`, tutorData); // Debug log
-}
+            const [tutorName, tutorData] = eligibleTutors[0];
+            document.getElementById('tutor-name').textContent = tutorName; // Display recommended tutor
+            recommendedTutors.add(tutorName); // Add to recommended tutors to avoid repetition
+            console.log(`Recommended Tutor: ${tutorName}`, tutorData); // Debug log
+        }
 
         function acceptSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
             tutorsData[tutorName].sessions += 1;
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             alert(`${tutorName} accepted the session.`);
-            window.history.back(); // Return to main page on acceptance
+            window.history.back(); // Return to the main page on acceptance
         }
 
         function declineSession() {
-    const tutorName = document.getElementById('tutor-name').textContent.trim(); // Get the tutor name
-    console.log(`Declining session for: ${tutorName}`); // Debug log
+            const tutorName = document.getElementById('tutor-name').textContent.trim();
+            console.log(`Declining session for: ${tutorName}`); // Debug log
 
-    // Fetch the latest tutorsData from localStorage
-    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+            // Ensure we have the latest data from localStorage
+            tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-    if (tutorsData[tutorName]) {
-        // Increment the declined sessions counter
-        tutorsData[tutorName].declinedSessions += 1;
+            if (tutorsData[tutorName]) {
+                tutorsData[tutorName].declinedSessions = (tutorsData[tutorName].declinedSessions || 0) + 1;
 
-        // Save updated data back to localStorage
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+                console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debug log
+            } else {
+                console.error(`Tutor ${tutorName} not found!`); // Error log if tutor is missing
+            }
 
-        console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debug log
-    } else {
-        console.error(`Tutor ${tutorName} not found!`); // Error log if tutor is missing
-    }
-
-    alert(`${tutorName} declined the session. Finding another tutor...`);
-    recommendTutor(); // Try recommending another tutor
-}
+            alert(`${tutorName} declined the session. Finding another tutor...`);
+            recommendTutor(); // Recommend another tutor
+        }
 
         function markInSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
             tutorsData[tutorName].available = false;
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             alert(`${tutorName} is now in session. Finding another tutor...`);
-            recommendTutor(); // Try another tutor
+            recommendTutor(); // Recommend another tutor
         }
 
         recommendTutor(); // Start by recommending a tutor
     </script>
 </body>
 </html>
+
