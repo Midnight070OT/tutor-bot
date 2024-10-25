@@ -89,21 +89,27 @@
         }
 
         function declineSession() {
-        const tutorName = document.getElementById('tutor-name').textContent; // Get the current tutor name
-    
-        // Ensure tutorsData is up to date from localStorage
-        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-    
-        if (tutorsData[tutorName]) {
-            tutorsData[tutorName].declinedSessions += 1; // Increment the declined sessions counter
-            localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save updated data to localStorage
-            alert(`${tutorName} declined the session.`);
-        } else {
-            alert(`Error: Tutor ${tutorName} not found.`);
-        }
-    
-        recommendTutor(); // Find another tutor
-        }
+    const tutorName = document.getElementById('tutor-name').textContent.trim(); // Get the tutor name
+    console.log(`Declining session for: ${tutorName}`); // Debug log
+
+    // Fetch the latest tutorsData from localStorage
+    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+    if (tutorsData[tutorName]) {
+        // Increment the declined sessions counter
+        tutorsData[tutorName].declinedSessions += 1;
+
+        // Save updated data back to localStorage
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+
+        console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debug log
+    } else {
+        console.error(`Tutor ${tutorName} not found!`); // Error log if tutor is missing
+    }
+
+    alert(`${tutorName} declined the session. Finding another tutor...`);
+    recommendTutor(); // Try recommending another tutor
+}
 
         function markInSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
