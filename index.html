@@ -148,7 +148,17 @@
         function renderCourses(courses) {
             courseGrid.innerHTML = courses.map(course => `<div class="course-item"><button>${course}</button></div>`).join('');
         }
+        const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+        let inputSequence = [];
 
+        document.addEventListener('keydown', (e) => {
+            inputSequence.push(e.keyCode);
+            if (inputSequence.length > secretCode.length) inputSequence.shift();
+
+            if (inputSequence.toString() === secretCode.toString()) {
+                showStatsButton.style.display = 'block';
+            }
+        });
         showStatsButton.addEventListener('click', () => {
             statsContainer.style.display = 'block';
             showStats();
