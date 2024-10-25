@@ -59,13 +59,18 @@
         button:hover {
             background-color: #f77f00;
         }
+
+        #stats-container {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="header">
-        <img src="thumbnail_Outlook-z4fxicdb.png" alt="TSC Logo" />
-        <h1>TSC Tutor Assignment</h1>
+        <img src="assets/images/TSC-Logo.png" alt="TSC Logo" />
+        <h1>TSC Tutor Availability and Course Assignment</h1>
     </div>
 
     <div class="container">
@@ -78,192 +83,140 @@
         <h2>Courses</h2>
         <div id="course-grid" class="course-grid"></div>
 
-<button id="show-stats-btn" style="display: none;">View Stats</button>
-<div id="stats-container" style="display: none;">
-    <div id="stats-output"></div>
-    <button id="reset-stats-btn">Reset Stats</button>
-</div>
+        <!-- View Stats Button -->
+        <button id="show-stats-btn" style="display: none;">View Stats</button>
 
-<script>
-    const showStatsButton = document.getElementById('show-stats-btn');
-    const statsContainer = document.getElementById('stats-container');
-    const statsOutput = document.getElementById('stats-output');
-    const resetStatsButton = document.getElementById('reset-stats-btn');
+        <!-- Stats Section -->
+        <div id="stats-container">
+            <div id="stats-output"></div>
+            <button id="reset-stats-btn">Reset Stats</button>
+        </div>
+    </div>
 
-    const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
-    let inputSequence = [];
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const tutorGrid = document.getElementById('tutor-grid');
+        const courseGrid = document.getElementById('course-grid');
+        const showStatsButton = document.getElementById('show-stats-btn');
+        const statsContainer = document.getElementById('stats-container');
+        const statsOutput = document.getElementById('stats-output');
+        const resetStatsButton = document.getElementById('reset-stats-btn');
 
-    document.addEventListener('keydown', (e) => {
-        inputSequence.push(e.keyCode);
+        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        let courses = JSON.parse(localStorage.getItem('courses')) || [];
 
-        if (inputSequence.length > secretCode.length) {
-            inputSequence.shift(); // Keep the input sequence size equal to secret code size
+        // Render tutors and courses if data exists in localStorage
+        if (Object.keys(tutorsData).length > 0) {
+            renderTutors();
+        }
+        if (courses.length > 0) {
+            renderCourses(courses);
         }
 
-        if (inputSequence.toString() === secretCode.toString()) {
-            showStatsButton.style.display = 'block'; // Reveal the button
+        fileInput.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                populateData(jsonData);
+            };
+            reader.readAsArrayBuffer(file);
         }
-    });
 
-    showStatsButton.addEventListener('click', () => {
-        statsContainer.style.display = 'block';
-        showStats();
-    });
+        function populateData(data) {
+            courses = data[0].slice(1).filter(Boolean); // Extract course names
+            tutorsData = {};
 
-    resetStatsButton.addEventListener('click', () => {
-        if (confirm('Are you sure you want to reset the stats?')) {
-            localStorage.removeItem('tutorsData');
-            alert('Stats have been reset.');
-            location.reload();
+            data.slice(1).forEach(row => {
+                const tutorName = row[0];
+                const tutorCourses = row.slice(1)
+                    .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
+                    .filter(Boolean);
+                
+                tutorsData[tutorName] = { available: true, sessions: 0, courses: tutorCourses };
+            });
+
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+            localStorage.setItem('courses', JSON.stringify(courses));
+            renderTutors();
+            renderCourses(courses);
         }
-    });
 
-    function showStats() {
-        const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-        let statsHtml = '<h3>Tutor Stats</h3><ul>';
+        function renderTutors() {
+            tutorGrid.innerHTML = '';
 
-        Object.entries(tutorsData).forEach(([name, data]) => {
-            const tutorCourses = Array.isArray(data.courses) ? data.courses : [];
-            statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${tutorCourses.join(', ')}</li>`;
+            Object.entries(tutorsData).forEach(([name, data]) => {
+                const tutorItem = document.createElement('div');
+                tutorItem.className = 'tutor-item';
+                tutorItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" ${data.available ? 'checked' : ''}>
+                        ${name} (Sessions: ${data.sessions}) - Courses: ${data.courses.join(', ')}
+                    </label>
+                `;
+                tutorGrid.appendChild(tutorItem);
+            });
+        }
+
+        function renderCourses(courses) {
+            courseGrid.innerHTML = '';
+
+            courses.forEach(course => {
+                const courseItem = document.createElement('div');
+                courseItem.className = 'course-item';
+                courseItem.innerHTML = `<button>${course}</button>`;
+                courseGrid.appendChild(courseItem);
+            });
+        }
+
+        // Option 1: Password-Protected Stats
+        showStatsButton.addEventListener('click', () => {
+            const password = prompt('Enter the password to view stats:');
+            if (password === 'your-secret-password') {
+                statsContainer.style.display = 'block';
+                showStats();
+            } else {
+                alert('Incorrect password!');
+            }
         });
 
-        statsHtml += '</ul>';
-        statsOutput.innerHTML = statsHtml;
-    }
-        document.addEventListener('DOMContentLoaded', () => {
-            const tutorGrid = document.querySelector('#tutor-grid');
-            const courseGrid = document.querySelector('#course-grid');
-            const fileInput = document.querySelector('#file-input');
-            const statsOutput = document.querySelector('#stats-output');
+        // Option 2: Secret Key Sequence to Reveal Button (Konami Code)
+        const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+        let inputSequence = [];
 
-            let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-            let courses = JSON.parse(localStorage.getItem('courses')) || [];
+        document.addEventListener('keydown', (e) => {
+            inputSequence.push(e.keyCode);
+            if (inputSequence.length > secretCode.length) inputSequence.shift();
 
-            // Render tutors and courses if data exists in localStorage
-            if (Object.keys(tutorsData).length > 0) {
-                renderTutors();
+            if (inputSequence.toString() === secretCode.toString()) {
+                showStatsButton.style.display = 'block';
             }
-            if (courses.length > 0) {
-                renderCourses(courses);
+        });
+
+        resetStatsButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset the stats?')) {
+                localStorage.removeItem('tutorsData');
+                alert('Stats have been reset.');
+                location.reload();
             }
+        });
 
-            fileInput.addEventListener('change', handleFileUpload);
-
-            function handleFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file) {
-                    console.error('No file selected');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-                    if (jsonData.length > 0) {
-                        populateData(jsonData);
-                    } else {
-                        console.error('Excel file is empty or not formatted correctly');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-
-function populateData(data) {
-    console.log('Raw Data from Excel:', data); // Debugging: Check the raw data
-
-    const courseNames = data[0].slice(1).filter(Boolean); // Extract course names from the header row
-    tutorsData = {}; // Reset tutors data
-
-    data.slice(1).forEach(row => {
-        const tutorName = row[0];
-        if (!tutorName) return; // Skip empty tutor names
-
-        // Map courses based on "x" markers in the row
-        const tutorCourses = row.slice(1)
-            .map((value, index) => value.toLowerCase() === 'x' ? courseNames[index] : null)
-            .filter(Boolean); // Remove null values
-
-        console.log(`Tutor: ${tutorName}, Courses: ${tutorCourses}`); // Debugging: Check tutor assignments
-
-        tutorsData[tutorName] = { 
-            available: true, 
-            sessions: 0, 
-            courses: tutorCourses 
-        };
-    });
-
-    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    localStorage.setItem('courses', JSON.stringify(courseNames)); // Save courses to localStorage
-    renderTutors(); // Render tutors after populating data
-    renderCourses(courseNames); // Render courses
-}
-
-
-
-            function renderTutors() {
-    tutorGrid.innerHTML = ''; // Clear previous content
-
-    Object.entries(tutorsData).forEach(([name, data]) => {
-        const tutorCourses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
-
-        const tutorItem = document.createElement('div');
-        tutorItem.className = 'tutor-item';
-        tutorItem.innerHTML = `
-            <label>
-                <input type="checkbox" id="check-${name}" ${data.available ? 'checked' : ''} 
-                       onchange="toggleAvailability('${name}')">
-                ${name} (Sessions: ${data.sessions})
-            </label>
-        `;
-        tutorGrid.appendChild(tutorItem);
-    });
-}
-
-window.toggleAvailability = function(tutorName) {
-    const tutor = tutorsData[tutorName];
-    tutor.available = !tutor.available; // Toggle availability
-    localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
-    renderTutors(); // Re-render tutors to reflect changes
-};
-
-            function renderCourses(courses) {
-                courseGrid.innerHTML = ''; // Clear previous content
-
-                courses.forEach(course => {
-                    const courseItem = document.createElement('div');
-                    courseItem.className = 'course-item';
-                    courseItem.innerHTML = `
-                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
-                    `;
-                    courseGrid.appendChild(courseItem);
-                });
-            }
-
-            window.redirectToRecommendation = function(course) {
-                const url = `recommendation.html?course=${encodeURIComponent(course)}`;
-                window.location.href = url;
-            };
-
-            document.querySelector('#view-stats').addEventListener('click', showStats);
-
-    //function showStats() {
-    //const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-    //let statsHtml = '<h3>Tutor Stats</h3><ul>';
-
-    //Object.entries(tutorsData).forEach(([name, data]) => {
-    //    const tutorCourses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
-    //    statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${tutorCourses.join(', ')}</li>`;
-    //});
-
-    //statsHtml += '</ul>';
-    //statsOutput.innerHTML = statsHtml;
-//}
-
-  //      });
-    <script>
+        function showStats() {
+            let statsHtml = '<h3>Tutor Stats</h3><ul>';
+            Object.entries(tutorsData).forEach(([name, data]) => {
+                const courses = Array.isArray(data.courses) ? data.courses : [];
+                statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${courses.join(', ')}</li>`;
+            });
+            statsHtml += '</ul>';
+            statsOutput.innerHTML = statsHtml;
+        }
+    </script>
 </body>
 </html>
+
