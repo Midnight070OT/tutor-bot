@@ -162,32 +162,49 @@
                 const url = `recommendation.html?course=${encodeURIComponent(course)}`;
                 window.location.href = url;
             };
-        const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
-        let inputSequence = [];
+        const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
+let inputSequence = [];
 
-        document.addEventListener('keydown', (e) => {
-            inputSequence.push(e.keyCode);
-            if (inputSequence.length > secretCode.length) inputSequence.shift();
+document.addEventListener('keydown', (e) => {
+    inputSequence.push(e.keyCode);
 
-            if (inputSequence.toString() === secretCode.toString()) {
-                showStatsButton.style.display = 'block';
-            }
-        });
-        showStatsButton.addEventListener('click', () => {
-            statsContainer.style.display = 'block';
-            showStats();
-        });
+    // Keep the input sequence size equal to the secret code size
+    if (inputSequence.length > secretCode.length) inputSequence.shift();
 
-        resetStatsButton.addEventListener('click', () => {
-            if (confirm('Are you sure you want to reset the stats?')) {
-                localStorage.removeItem('tutorsData');
-                location.reload();
-            }
-        });
+    // Check if the input matches the secret code
+    if (inputSequence.toString() === secretCode.toString()) {
+        showStatsButton.style.display = 'block'; // Reveal the stats button
+        inputSequence = []; // Reset the sequence after successful entry
+    }
+});
 
-        function showStats() {
-            statsOutput.innerHTML = '<h3>Tutor Stats</h3><ul>' + Object.entries(tutorsData).map(([n, d]) => `<li>${n}: ${d.sessions} sessions, Courses: ${d.courses.join(', ')}</li>`).join('') + '</ul>';
-        }
+showStatsButton.addEventListener('click', () => {
+    if (statsContainer.style.display !== 'block') { // Prevent multiple triggers
+        statsContainer.style.display = 'block';
+        showStats();
+    }
+});
+
+resetStatsButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset the stats?')) {
+        localStorage.removeItem('tutorsData');
+        location.reload(); // Reload the page after resetting
+    }
+});
+
+function showStats() {
+    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    let statsHtml = '<h3>Tutor Stats</h3><ul>';
+
+    Object.entries(tutorsData).forEach(([name, data]) => {
+        const courses = Array.isArray(data.courses) ? data.courses : []; // Ensure courses is an array
+        statsHtml += `<li>${name}: ${data.sessions} sessions, Courses: ${courses.join(', ') || 'None'}</li>`;
+    });
+
+    statsHtml += '</ul>';
+    statsOutput.innerHTML = statsHtml;
+}
+
     </script>
 </body>
 </html>
