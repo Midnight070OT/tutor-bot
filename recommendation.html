@@ -88,9 +88,13 @@
             window.history.back(); // Return to main page on acceptance
         }
 
-        function declineSession() {
-            alert(`Declining session, finding another tutor...`);
-            recommendTutor(); // Try another tutor
+        function declineSession(tutorName) {
+            if (tutorsData[tutorName]) {
+                tutorsData[tutorName].declinedSessions += 1; // Increment declined sessions
+                localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
+                alert(`${tutorName} declined the session.`);
+            }
+            recommendTutor(); // Find another tutor
         }
 
         function markInSession() {
