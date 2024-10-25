@@ -146,8 +146,22 @@
         }
 
         function renderCourses(courses) {
-            courseGrid.innerHTML = courses.map(course => `<div class="course-item"><button>${course}</button></div>`).join('');
-        }
+                courseGrid.innerHTML = ''; // Clear previous content
+
+                courses.forEach(course => {
+                    const courseItem = document.createElement('div');
+                    courseItem.className = 'course-item';
+                    courseItem.innerHTML = `
+                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
+                    `;
+                    courseGrid.appendChild(courseItem);
+                });
+            }
+
+            window.redirectToRecommendation = function(course) {
+                const url = `recommendation.html?course=${encodeURIComponent(course)}`;
+                window.location.href = url;
+            };
         const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
         let inputSequence = [];
 
