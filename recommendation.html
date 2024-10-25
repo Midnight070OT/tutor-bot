@@ -57,28 +57,28 @@
 
         console.log('Tutors Data:', tutorsData); // Debugging: Check tutors data on page load
 
-        function recommendTutor() {
-            // Ensure that tutors and courses are handled properly
-            const eligibleTutors = Object.entries(tutorsData)
-                .filter(([name, data]) => {
-                    const tutorCourses = Array.isArray(data.courses) ? data.courses : [];
-                    console.log(`Checking tutor: ${name}`, data); // Debugging each tutor's data
-                    return data.available && tutorCourses.includes(course) && !suggestedTutors.includes(name);
-                })
-                .sort((a, b) => a[1].sessions - b[1].sessions);
+        // Recommendation logic to filter and recommend tutors
+function recommendTutor() {
+    // Load the latest tutorsData from localStorage
+    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    const course = new URLSearchParams(window.location.search).get('course');
 
-            console.log('Eligible Tutors:', eligibleTutors); // Debugging: Check eligible tutors
+    const eligibleTutors = Object.entries(tutorsData)
+        .filter(([name, data]) => data.available && data.courses.includes(course))
+        .sort((a, b) => a[1].sessions - b[1].sessions);
 
-            if (eligibleTutors.length === 0) {
-                alert(`No more tutors available for ${course}.`);
-                window.history.back(); // Go back to the main page if no tutors are left
-                return;
-            }
+    console.log('Eligible Tutors:', eligibleTutors); // Debug log
 
-            const [tutorName] = eligibleTutors[0];
-            suggestedTutors.push(tutorName); // Add tutor to suggested list
-            document.getElementById('tutor-name').textContent = tutorName;
-        }
+    if (eligibleTutors.length === 0) {
+        alert(`No more tutors available for ${course}.`);
+        window.history.back(); // Go back if no tutors are left
+        return;
+    }
+
+    const [tutorName, tutorData] = eligibleTutors[0]; // Get the first eligible tutor
+    document.getElementById('tutor-name').textContent = tutorName; // Display recommended tutor
+    console.log(`Recommended Tutor: ${tutorName}`, tutorData); // Debug log
+}
 
         function acceptSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
