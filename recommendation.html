@@ -88,13 +88,21 @@
             window.history.back(); // Return to main page on acceptance
         }
 
-        function declineSession(tutorName) {
-            if (tutorsData[tutorName]) {
-                tutorsData[tutorName].declinedSessions += 1; // Increment declined sessions
-                localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save to localStorage
-                alert(`${tutorName} declined the session.`);
-            }
-            recommendTutor(); // Find another tutor
+        function declineSession() {
+        const tutorName = document.getElementById('tutor-name').textContent; // Get the current tutor name
+    
+        // Ensure tutorsData is up to date from localStorage
+        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    
+        if (tutorsData[tutorName]) {
+            tutorsData[tutorName].declinedSessions += 1; // Increment the declined sessions counter
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData)); // Save updated data to localStorage
+            alert(`${tutorName} declined the session.`);
+        } else {
+            alert(`Error: Tutor ${tutorName} not found.`);
+        }
+    
+        recommendTutor(); // Find another tutor
         }
 
         function markInSession() {
