@@ -299,6 +299,8 @@ function exportStats() {
     sendEmailWithAttachment(statsArray);
 }
 
+const url = 'https://script.google.com/macros/s/AKfycbxScqL--6f-eQL79ls9N-v5tm8-E9IVGgvPX_HwMMhbIIrfCe69-dPZFeSlRkYGCRqK/exec'; // Replace with your deployment URL
+
 function sendEmailWithAttachment(statsArray) {
     fetch(url, {
         method: 'POST',
@@ -319,6 +321,7 @@ function sendEmailWithAttachment(statsArray) {
         alert('Error sending email.');
     });
 }
+
 
 
 
