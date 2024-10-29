@@ -308,20 +308,15 @@ function sendEmailWithAttachment(statsArray) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stats: statsArray }),
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Email sent successfully!');
-        } else {
-            console.error('Email failed:', data.error);
-            alert('Failed to send email.');
-        }
+    .then(() => {
+        alert('Email request sent! Check your email to confirm.');
     })
     .catch(error => {
         console.error('Fetch error:', error);
         alert('Error sending email.');
     });
 }
+
 
 
 
