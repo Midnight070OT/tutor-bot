@@ -304,6 +304,7 @@ const url = 'https://script.google.com/macros/s/AKfycbxScqL--6f-eQL79ls9N-v5tm8-
 function sendEmailWithAttachment(statsArray) {
     fetch(url, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stats: statsArray }),
     })
