@@ -94,6 +94,7 @@
         <div id="stats-container">
             <div id="stats-output"></div>
             <button id="reset-stats-btn">Reset Stats</button>
+            <button id="export-stats-btn">Export & Send Stats</button>
         </div>
     </div>
 
@@ -264,6 +265,59 @@ function showStats() {
     // Render the table inside the stats output container
     statsOutput.innerHTML = statsHtml;
 }
+        document.getElementById('export-stats-btn').addEventListener('click', exportStats);
+
+function exportStats() {
+    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+    // Prepare the data for Excel
+    const statsArray = [['Tutor', 'Sessions', 'Declined Sessions', 'Courses']];
+    Object.entries(tutorsData).forEach(([name, data]) => {
+        const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
+        statsArray.push([name, data.sessions, data.declinedSessions || 0, courses]);
+    });
+
+    // Create a new workbook and worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(statsArray);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tutor Stats');
+
+    // Export the workbook to a binary string
+    const excelData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+    // Trigger download of the Excel file
+    const blob = new Blob([excelData], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tutor_stats.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Optional: Trigger email sending after export
+    sendEmailWithAttachment(statsArray);
+}
+        function sendEmailWithAttachment(statsArray) {
+    const url = 'https://script.google.com/macros/s/AKfycbwMmdsxkLjVQXE6z9m9f9P9NSCScAhbzzwExr5I2qSI33b7C--eBZgMR9EmRU5zulzqcA/exec'; // Replace with your Apps Script URL
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stats: statsArray })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Email sent successfully!');
+        console.log('Email Response:', data);
+    })
+    .catch(error => {
+        console.error('Error sending email:', error);
+        alert('Failed to send email.');
+    });
+}
+
+
 
     </script>
 </body>
