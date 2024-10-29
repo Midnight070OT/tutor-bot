@@ -298,24 +298,28 @@ function exportStats() {
     // Optional: Trigger email sending after export
     sendEmailWithAttachment(statsArray);
 }
-        function sendEmailWithAttachment(statsArray) {
-    const url = 'https://script.google.com/macros/s/AKfycbw-Swo1YSt1irwB2ULx2g0K7PLFCvpbOBPgQH5Q5OM-wMIMioHLHIef6S1J-vLSqDfh/exec'; // Replace with your Apps Script URL
 
+function sendEmailWithAttachment(statsArray) {
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stats: statsArray })
+        body: JSON.stringify({ stats: statsArray }),
     })
     .then(response => response.json())
     .then(data => {
-        alert('Email sent successfully!');
-        console.log('Email Response:', data);
+        if (data.success) {
+            alert('Email sent successfully!');
+        } else {
+            console.error('Email failed:', data.error);
+            alert('Failed to send email.');
+        }
     })
     .catch(error => {
-        console.error('Error sending email:', error);
-        alert('Failed to send email.');
+        console.error('Fetch error:', error);
+        alert('Error sending email.');
     });
 }
+
 
 
 
