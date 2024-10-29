@@ -79,6 +79,10 @@
 
         <h2>Tutors</h2>
         <div id="tutor-grid" class="tutor-grid"></div>
+        
+        <!-- Update availability button -->
+        <button id="update-availability-btn">Update Availability</button>
+
 
         <h2>Courses</h2>
         <div id="course-grid" class="course-grid"></div>
@@ -171,6 +175,25 @@
                 const url = `recommendation.html?course=${encodeURIComponent(course)}`;
                 window.location.href = url;
             };
+        // Update Availability Button Event Listener
+        const updateAvailabilityButton = document.getElementById('update-availability-btn');
+        
+        updateAvailabilityButton.addEventListener('click', () => {
+            // Loop through all tutor checkboxes and update availability
+            const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach((checkbox) => {
+                const tutorName = checkbox.parentElement.textContent.trim(); // Get tutor name
+                tutorsData[tutorName].available = checkbox.checked; // Update availability
+            });
+        
+            // Save the updated data to localStorage
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+            alert('Availability updated successfully!');
+            renderTutors(); // Re-render the tutor list with the new availability
+
+        });
+
         const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
 let inputSequence = [];
 
