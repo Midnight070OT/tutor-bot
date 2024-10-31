@@ -193,7 +193,77 @@
 
     // Button to send stats to Google Sheets via the API
     document.getElementById('export-stats-btn').addEventListener('click', exportStats);
+            const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
+    let inputSequence = [];
 
+document.addEventListener('keydown', (e) => {
+    inputSequence.push(e.keyCode);
+
+    // Keep the input sequence size equal to the secret code size
+    if (inputSequence.length > secretCode.length) inputSequence.shift();
+
+    // Check if the input matches the secret code
+    if (inputSequence.toString() === secretCode.toString()) {
+        showStatsButton.style.display = 'block'; // Reveal the stats button
+        inputSequence = []; // Reset the sequence after successful entry
+    }
+});
+
+showStatsButton.addEventListener('click', () => {
+    if (statsContainer.style.display !== 'block') { // Prevent multiple triggers
+        statsContainer.style.display = 'block';
+        showStats();
+    }
+});
+
+resetStatsButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset the stats?')) {
+        localStorage.removeItem('tutorsData');
+        location.reload(); // Reload the page after resetting
+    }
+});
+
+
+// Add stats display for declined sessions
+function showStats() {
+    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+    // Create table elements
+    let statsHtml = 
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Tutor</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Sessions</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Declined Sessions</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Courses</th>
+                </tr>
+            </thead>
+            <tbody>
+    ;
+
+    // Loop through tutorsData and generate rows for each tutor
+    Object.entries(tutorsData).forEach(([name, data]) => {
+        const courses = Array.isArray(data.courses) ? data.courses : [];
+        statsHtml += 
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">${name}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${data.sessions}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${data.declinedSessions || 0}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${courses.join(', ') || 'None'}</td>
+            </tr>
+        ;
+    });
+
+    statsHtml += 
+            </tbody>
+        </table>
+    ;
+
+    // Render the table inside the stats output container
+    statsOutput.innerHTML = statsHtml;
+    }
+    document.getElementById('export-stats-btn').addEventListener('click', exportStats);
     // Function to export stats to Google Sheets via doPost
     function exportStats() {
         const statsArray = [['Tutor', 'Sessions', 'Declined Sessions', 'Courses']];
