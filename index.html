@@ -228,8 +228,8 @@ resetStatsButton.addEventListener('click', () => {
 function showStats() {
     const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-    // Create table elements
-    let statsHtml = 
+    // Create table elements as a string using template literals
+    let statsHtml = `
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr>
@@ -240,29 +240,30 @@ function showStats() {
                 </tr>
             </thead>
             <tbody>
-    ;
+    `;
 
     // Loop through tutorsData and generate rows for each tutor
     Object.entries(tutorsData).forEach(([name, data]) => {
-        const courses = Array.isArray(data.courses) ? data.courses : [];
-        statsHtml += 
+        const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
+        statsHtml += `
             <tr>
                 <td style="border: 1px solid #ddd; padding: 8px;">${name}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${data.sessions}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${data.declinedSessions || 0}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${courses.join(', ') || 'None'}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${courses}</td>
             </tr>
-        ;
+        `;
     });
 
-    statsHtml += 
+    statsHtml += `
             </tbody>
         </table>
-    ;
+    `;
 
     // Render the table inside the stats output container
     statsOutput.innerHTML = statsHtml;
-    }
+}
+
     document.getElementById('export-stats-btn').addEventListener('click', exportStats);
     // Function to export stats to Google Sheets via doPost
     function exportStats() {
