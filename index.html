@@ -302,19 +302,25 @@ function exportStats() {
 const url = 'https://script.google.com/macros/s/AKfycbxlE_g1EQ26RpHaPK4rVmM79GvMoAutq9147VWRj1BgSCY6qhDBQlzximOzsLvfOH0q/exec'; // Replace with your deployment URL
 
 function sendEmailWithAttachment(statsArray) {
-    fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stats: statsArray }),
-    })
-    .then(() => {
-        alert('Email request sent! Check your email to confirm.');
-    })
-    .catch(error => {
-        console.error('Fetch error:', error);
-        alert('Error sending email.');
-    });
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(statsArray), // Send the stats as JSON
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success) {
+        alert('Stats successfully added to Google Sheets!');
+    } else {
+        console.error('Error:', data.error);
+        alert('Failed to add stats to Google Sheets.');
+    }
+})
+.catch(error => {
+    console.error('Fetch error:', error);
+    alert('Error sending stats.');
+});
+
 }
 
 
