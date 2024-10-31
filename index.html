@@ -299,35 +299,23 @@ function exportStats() {
     sendEmailWithAttachment(statsArray);
 }
 
-const url = 'https://script.google.com/macros/s/AKfycbxlE_g1EQ26RpHaPK4rVmM79GvMoAutq9147VWRj1BgSCY6qhDBQlzximOzsLvfOH0q/exec'; // Replace with your deployment URL
+const url = 'https://script.google.com/macros/s/AKfycbx_aGNbxObMzeDCQrjPuoxkhFcLX3Y4mx2av9dfJhQoOhhFM_xBoTb6IaiI_X--OkMv/exec'; // Replace with your deployment URL
 
 function sendEmailWithAttachment(statsArray) {
   fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(statsArray), // Send the stats as JSON
-})
-.then(response => response.json())
-.then(data => {
-    if (data.success) {
-        alert('Stats successfully added to Google Sheets!');
-    } else {
-        console.error('Error:', data.error);
-        alert('Failed to add stats to Google Sheets.');
-    }
-})
-.catch(error => {
+    body: JSON.stringify(statsArray),
+    mode: 'no-cors' // This mode prevents CORS blocking
+  })
+  .then(response => {
+    alert('Stats successfully added to Google Sheets!');
+  })
+  .catch(error => {
     console.error('Fetch error:', error);
     alert('Error sending stats.');
-});
-
+  });
 }
-
-
-
-
-
-
     </script>
 </body>
 </html>
