@@ -295,7 +295,7 @@ function showStats() {
     function runWeeklyAnalysis() {
         const analysisUrl = 'https://script.google.com/macros/s/AKfycbyBaSx4TvrFu9QTAC66lNofh5AgDMfhTZflkQRPQ1jA7K5OYmxBcYjp-Jx7Lg90piMV/exec?function=runAnalysisAndSendEmail'; // Replace with your web app URL + function parameter
 
-        fetch(analysisUrl, { method: 'GET' })
+        fetch(analysisUrl, { method: 'GET', mode:'no-cors'})
             .then(response => response.text())
             .then(data => {
                 alert(data); // Notify the user about the success
