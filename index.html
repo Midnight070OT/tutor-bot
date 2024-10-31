@@ -95,227 +95,146 @@
             <div id="stats-output"></div>
             <button id="reset-stats-btn">Reset Stats</button>
             <button id="export-stats-btn">Export & Send Stats</button>
+            <button onclick="runWeeklyAnalysis()">Run Weekly Analysis and Send Email</button>
+
         </div>
     </div>
 
     <script>
-        const fileInput = document.getElementById('file-input');
-        const tutorGrid = document.getElementById('tutor-grid');
-        const courseGrid = document.getElementById('course-grid');
-        const showStatsButton = document.getElementById('show-stats-btn');
-        const statsContainer = document.getElementById('stats-container');
-        const statsOutput = document.getElementById('stats-output');
-        const resetStatsButton = document.getElementById('reset-stats-btn');
+    const fileInput = document.getElementById('file-input');
+    const tutorGrid = document.getElementById('tutor-grid');
+    const courseGrid = document.getElementById('course-grid');
+    const showStatsButton = document.getElementById('show-stats-btn');
+    const statsContainer = document.getElementById('stats-container');
+    const statsOutput = document.getElementById('stats-output');
+    const resetStatsButton = document.getElementById('reset-stats-btn');
 
-        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-        let courses = JSON.parse(localStorage.getItem('courses')) || [];
+    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    let courses = JSON.parse(localStorage.getItem('courses')) || [];
 
-        if (Object.keys(tutorsData).length > 0) renderTutors();
-        if (courses.length > 0) renderCourses(courses);
+    if (Object.keys(tutorsData).length > 0) renderTutors();
+    if (courses.length > 0) renderCourses(courses);
 
-        fileInput.addEventListener('change', handleFileUpload);
+    fileInput.addEventListener('change', handleFileUpload);
 
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-                populateData(jsonData);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function populateData(data) {
-    courses = data[0].slice(1).filter(Boolean); // Extract course names
-    tutorsData = {};
-
-    data.slice(1).forEach(row => {
-        const tutorName = row[0];
-        const tutorCourses = row.slice(1)
-            .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
-            .filter(Boolean);
-
-        // Initialize the tutor with available sessions, courses, and declined sessions
-        tutorsData[tutorName] = {
-            available: true,
-            sessions: 0,
-            declinedSessions: 0, // Initialize declinedSessions counter
-            courses: tutorCourses
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            populateData(jsonData);
         };
-    });
+        reader.readAsArrayBuffer(file);
+    }
 
-    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    localStorage.setItem('courses', JSON.stringify(courses));
-    renderTutors();
-    renderCourses(courses);
-}
+    function populateData(data) {
+        courses = data[0].slice(1).filter(Boolean); // Extract course names
+        tutorsData = {};
 
-        function renderTutors() {
-            tutorGrid.innerHTML = '';
-            Object.entries(tutorsData).forEach(([name, data]) => {
-                tutorGrid.innerHTML += `<div class="tutor-item"><label><input type="checkbox" ${data.available ? 'checked' : ''}> ${name}</label></div>`;
-            });
-        }
+        data.slice(1).forEach(row => {
+            const tutorName = row[0];
+            const tutorCourses = row.slice(1)
+                .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
+                .filter(Boolean);
 
-        function renderCourses(courses) {
-                courseGrid.innerHTML = ''; // Clear previous content
-
-                courses.forEach(course => {
-                    const courseItem = document.createElement('div');
-                    courseItem.className = 'course-item';
-                    courseItem.innerHTML = `
-                        <button onclick="redirectToRecommendation('${course}')">${course}</button>
-                    `;
-                    courseGrid.appendChild(courseItem);
-                });
-            }
-
-            window.redirectToRecommendation = function(course) {
-                const url = `recommendation.html?course=${encodeURIComponent(course)}`;
-                window.location.href = url;
+            tutorsData[tutorName] = {
+                available: true,
+                sessions: 0,
+                declinedSessions: 0,
+                courses: tutorCourses
             };
-        // Update Availability Button Event Listener
-        const updateAvailabilityButton = document.getElementById('update-availability-btn');
-        
-        updateAvailabilityButton.addEventListener('click', () => {
-            // Loop through all tutor checkboxes and update availability
-            const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-            
-            checkboxes.forEach((checkbox) => {
-                const tutorName = checkbox.parentElement.textContent.trim(); // Get tutor name
-                tutorsData[tutorName].available = checkbox.checked; // Update availability
-            });
-        
-            // Save the updated data to localStorage
-            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-            alert('Availability updated successfully!');
-            renderTutors(); // Re-render the tutor list with the new availability
-
         });
 
-        const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
-let inputSequence = [];
-
-document.addEventListener('keydown', (e) => {
-    inputSequence.push(e.keyCode);
-
-    // Keep the input sequence size equal to the secret code size
-    if (inputSequence.length > secretCode.length) inputSequence.shift();
-
-    // Check if the input matches the secret code
-    if (inputSequence.toString() === secretCode.toString()) {
-        showStatsButton.style.display = 'block'; // Reveal the stats button
-        inputSequence = []; // Reset the sequence after successful entry
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        localStorage.setItem('courses', JSON.stringify(courses));
+        renderTutors();
+        renderCourses(courses);
     }
-});
 
-showStatsButton.addEventListener('click', () => {
-    if (statsContainer.style.display !== 'block') { // Prevent multiple triggers
-        statsContainer.style.display = 'block';
-        showStats();
+    function renderTutors() {
+        tutorGrid.innerHTML = '';
+        Object.entries(tutorsData).forEach(([name, data]) => {
+            tutorGrid.innerHTML += `<div class="tutor-item"><label><input type="checkbox" ${data.available ? 'checked' : ''}> ${name}</label></div>`;
+        });
     }
-});
 
-resetStatsButton.addEventListener('click', () => {
-    if (confirm('Are you sure you want to reset the stats?')) {
-        localStorage.removeItem('tutorsData');
-        location.reload(); // Reload the page after resetting
+    function renderCourses(courses) {
+        courseGrid.innerHTML = '';
+        courses.forEach(course => {
+            const courseItem = document.createElement('div');
+            courseItem.className = 'course-item';
+            courseItem.innerHTML = `
+                <button onclick="redirectToRecommendation('${course}')">${course}</button>
+            `;
+            courseGrid.appendChild(courseItem);
+        });
     }
-});
 
+    window.redirectToRecommendation = function(course) {
+        const url = `recommendation.html?course=${encodeURIComponent(course)}`;
+        window.location.href = url;
+    };
 
-// Add stats display for declined sessions
-function showStats() {
-    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+    const updateAvailabilityButton = document.getElementById('update-availability-btn');
+    
+    updateAvailabilityButton.addEventListener('click', () => {
+        const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+            const tutorName = checkbox.parentElement.textContent.trim();
+            tutorsData[tutorName].available = checkbox.checked;
+        });
 
-    // Create table elements
-    let statsHtml = `
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Tutor</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Sessions</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Declined Sessions</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Courses</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    // Loop through tutorsData and generate rows for each tutor
-    Object.entries(tutorsData).forEach(([name, data]) => {
-        const courses = Array.isArray(data.courses) ? data.courses : [];
-        statsHtml += `
-            <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${name}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${data.sessions}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${data.declinedSessions || 0}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${courses.join(', ') || 'None'}</td>
-            </tr>
-        `;
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        alert('Availability updated successfully!');
+        renderTutors();
     });
 
-    statsHtml += `
-            </tbody>
-        </table>
-    `;
+    // Button to send stats to Google Sheets via the API
+    document.getElementById('export-stats-btn').addEventListener('click', exportStats);
 
-    // Render the table inside the stats output container
-    statsOutput.innerHTML = statsHtml;
-}
-        document.getElementById('export-stats-btn').addEventListener('click', exportStats);
+    // Function to export stats to Google Sheets via doPost
+    function exportStats() {
+        const statsArray = [['Tutor', 'Sessions', 'Declined Sessions', 'Courses']];
+        Object.entries(tutorsData).forEach(([name, data]) => {
+            const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
+            statsArray.push([name, data.sessions, data.declinedSessions || 0, courses]);
+        });
 
-function exportStats() {
-    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        // API URL for the doPost function
+        const url = 'https://script.google.com/macros/s/1iBWbQ-gW2FGN5pMGQHHy2n6_l6hnUOsZgiCFgr79N7M/exec'; // Replace with your deployment URL
 
-    // Prepare the data for Excel
-    const statsArray = [['Tutor', 'Sessions', 'Declined Sessions', 'Courses']];
-    Object.entries(tutorsData).forEach(([name, data]) => {
-        const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
-        statsArray.push([name, data.sessions, data.declinedSessions || 0, courses]);
-    });
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(statsArray),
+            mode: 'no-cors' // This mode prevents CORS blocking
+        })
+        .then(response => {
+            alert('Stats successfully added to Google Sheets!');
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Error sending stats.');
+        });
+    }
 
-    // Create a new workbook and worksheet
-    const worksheet = XLSX.utils.aoa_to_sheet(statsArray);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tutor Stats');
+    // Button to run weekly analysis and send an email via Google Apps Script API
+    function runWeeklyAnalysis() {
+        const analysisUrl = 'https://script.google.com/macros/s/1iBWbQ-gW2FGN5pMGQHHy2n6_l6hnUOsZgiCFgr79N7M/exec?function=runAnalysisAndSendEmail'; // Replace with your web app URL + function parameter
 
-    // Export the workbook to a binary string
-    const excelData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        fetch(analysisUrl, { method: 'GET' })
+            .then(response => response.text())
+            .then(data => {
+                alert(data); // Notify the user about the success
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while running the analysis.');
+            });
+    }
 
-    // Trigger download of the Excel file
-    const blob = new Blob([excelData], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tutor_stats.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    // Optional: Trigger email sending after export
-    sendEmailWithAttachment(statsArray);
-}
-
-const url = 'https://script.google.com/macros/s/AKfycbx_aGNbxObMzeDCQrjPuoxkhFcLX3Y4mx2av9dfJhQoOhhFM_xBoTb6IaiI_X--OkMv/exec'; // Replace with your deployment URL
-
-function sendEmailWithAttachment(statsArray) {
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(statsArray),
-    mode: 'no-cors' // This mode prevents CORS blocking
-  })
-  .then(response => {
-    alert('Stats successfully added to Google Sheets!');
-  })
-  .catch(error => {
-    console.error('Fetch error:', error);
-    alert('Error sending stats.');
-  });
-}
     </script>
 </body>
 </html>
