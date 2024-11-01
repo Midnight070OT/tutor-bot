@@ -159,7 +159,6 @@
     localStorage.setItem('courses', JSON.stringify(courses));
 
     // Call update functions
-    updateAvailability();
     renderTutors();
     renderCourses(courses);
 }
@@ -350,6 +349,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Check every 2 seconds for a refresh flag
     setInterval(checkForUpdates, 2000);
 });
+
 
 
 
