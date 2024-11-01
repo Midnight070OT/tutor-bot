@@ -182,6 +182,25 @@
 
     // Call fetchTutorsAndCourses to load data on page load
     document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
+    // Konami Code to reveal the stats button
+    const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up, Up, Down, Down, Left, Right, Left, Right, B, A
+    let inputSequence = [];
+    
+    // Listen for keydown events to track the input sequence
+    document.addEventListener('keydown', (e) => {
+        inputSequence.push(e.keyCode);
+    
+        // Keep the input sequence length equal to the secret code length
+        if (inputSequence.length > secretCode.length) {
+            inputSequence.shift();
+        }
+    
+        // Check if the input sequence matches the secret code
+        if (inputSequence.toString() === secretCode.toString()) {
+            document.getElementById('show-stats-btn').style.display = 'block'; // Reveal the stats button
+            inputSequence = []; // Reset the sequence after successful entry
+        }
+    });
 
     </script>
 </body>
