@@ -65,7 +65,6 @@
             margin-top: 20px;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -80,7 +79,6 @@
         <!-- Update availability button -->
         <button id="update-availability-btn">Update Availability</button>
 
-
         <h2>Courses</h2>
         <div id="course-grid" class="course-grid"></div>
 
@@ -93,313 +91,99 @@
             <button id="reset-stats-btn">Reset Stats</button>
             <button id="export-stats-btn">Export & Send Stats</button>
             <button onclick="runWeeklyAnalysis()">Run Weekly Analysis and Send Email</button>
-
         </div>
     </div>
 
     <script>
-    const fileInput = document.getElementById('file-input');
     const tutorGrid = document.getElementById('tutor-grid');
     const courseGrid = document.getElementById('course-grid');
     const showStatsButton = document.getElementById('show-stats-btn');
     const statsContainer = document.getElementById('stats-container');
     const statsOutput = document.getElementById('stats-output');
     const resetStatsButton = document.getElementById('reset-stats-btn');
-    const url = 'https://script.google.com/macros/s/AKfycbyNczrkqqDFzBUYAdlxetKu3YtE_btly82iu1ALAvWuaROTQUeLVsnxXZAMz3pMYgok/exec'; // Replace with your deployment URL
+    const url = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_URL/exec'; // Replace with your deployment URL
 
-
-    let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-    let courses = JSON.parse(localStorage.getItem('courses')) || [];
-
-    if (Object.keys(tutorsData).length > 0) renderTutors();
-    if (courses.length > 0) renderCourses(courses);
-
- function populateData(data) {
-    
-    courses = data[0].slice(1).filter(Boolean); // Extract course names
-    tutorsData = {};
-
-    data.slice(1).forEach(row => {
-        const tutorName = row[0];
-        const tutorCourses = row.slice(1)
-            .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
-            .filter(Boolean);
-
-        tutorsData[tutorName] = {
-            available: tutorsData[tutorName]?.available || true, // Preserve existing availability if defined
-            sessions: tutorsData[tutorName]?.sessions || 0,
-            declinedSessions: tutorsData[tutorName]?.declinedSessions || 0,
-            courses: tutorCourses
-        };
-    });
-
-    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    localStorage.setItem('courses', JSON.stringify(courses));
-    renderTutors();
-    renderCourses(courses);
-}
-
-
-
-
-function renderTutors() {
-    if (!tutorsData || !Array.isArray(tutorsData)) {
-        console.error("Invalid tutorsData format:", tutorsData);
-        return;
+    // Fetch tutors and courses from Google Sheets
+    function fetchTutorsAndCourses() {
+        fetch(url + "?function=getTutorsAndCourses")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.text();
+            })
+            .then(text => {
+                console.log("Raw response:", text);
+                try {
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        renderTutors(data);
+                        renderCourses(data);
+                    } else {
+                        console.error("Unexpected data format:", data);
+                    }
+                } catch (error) {
+                    console.error("Error parsing JSON:", error, "Response:", text);
+                }
+            })
+            .catch(error => console.error("Error fetching data:", error));
     }
 
-    tutorGrid.innerHTML = '';
-    tutorsData.forEach(({ tutor, available }) => {
-        tutorGrid.innerHTML += `<div class="tutor-item">
-            <label><input type="checkbox" ${available ? 'checked' : ''}> ${tutor}</label>
-        </div>`;
-    });
-}
-
-function renderCourses(tutors) {
-    if (!tutors || !Array.isArray(tutors)) {
-        console.error("Invalid data format for tutors:", tutors);
-        return;
+    // Render tutors and their availability
+    function renderTutors(tutors) {
+        tutorGrid.innerHTML = '';
+        tutors.forEach(({ tutor, available }) => {
+            tutorGrid.innerHTML += `<div class="tutor-item">
+                <label><input type="checkbox" ${available ? 'checked' : ''} onchange="updateTutorAvailability('${tutor}', this.checked)"> ${tutor}</label>
+            </div>`;
+        });
     }
 
-    courseGrid.innerHTML = ''; // Clear previous content
+    // Render unique courses based on tutors' data
+    function renderCourses(tutors) {
+        courseGrid.innerHTML = '';
+        const uniqueCourses = new Set();
+        tutors.forEach(tutor => {
+            if (tutor.courses && Array.isArray(tutor.courses)) {
+                tutor.courses.forEach(course => uniqueCourses.add(course));
+            }
+        });
 
-    // Create a set to store unique courses
-    const uniqueCourses = new Set();
+        Array.from(uniqueCourses).forEach(course => {
+            const courseItem = document.createElement('div');
+            courseItem.className = 'course-item';
+            courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
+            courseGrid.appendChild(courseItem);
+        });
+    }
 
-    // Loop through each tutor to gather unique courses
-    tutors.forEach(tutor => {
-        if (tutor.courses && Array.isArray(tutor.courses)) {
-            tutor.courses.forEach(course => {
-                uniqueCourses.add(course);
-            });
-        } else {
-            console.warn("Tutor has no courses or courses is not an array:", tutor);
-        }
-    });
+    // Update tutor availability in Google Sheets
+    function updateTutorAvailability(tutorName, available) {
+        fetch(url + `?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`${tutorName}'s availability updated successfully!`);
+                fetchTutorsAndCourses(); // Refresh the list after updating
+            } else {
+                alert(`Failed to update availability for ${tutorName}.`);
+            }
+        })
+        .catch(error => console.error("Error updating availability:", error));
+    }
 
-    // Convert the Set to an array and create course buttons
-    Array.from(uniqueCourses).forEach(course => {
-        const courseItem = document.createElement('div');
-        courseItem.className = 'course-item';
-        courseItem.innerHTML = `
-            <button onclick="redirectToRecommendation('${course}')">${course}</button>
-        `;
-        courseGrid.appendChild(courseItem);
-    });
-}
+    // Redirect to the recommendation page
     window.redirectToRecommendation = function(course) {
         const url = `recommendation.html?course=${encodeURIComponent(course)}`;
         window.location.href = url;
     };
 
-    const updateAvailabilityButton = document.getElementById('update-availability-btn');
-    
-    updateAvailabilityButton.addEventListener('click', () => {
-        const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach((checkbox) => {
-            const tutorName = checkbox.parentElement.textContent.trim();
-            tutorsData[tutorName].available = checkbox.checked;
-        });
-
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-        alert('Availability updated successfully!');
-        renderTutors();
-    });
-
-    // Button to send stats to Google Sheets via the API
-    document.getElementById('export-stats-btn').addEventListener('click', exportStats);
-            const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
-    let inputSequence = [];
-
-document.addEventListener('keydown', (e) => {
-    inputSequence.push(e.keyCode);
-
-    // Keep the input sequence size equal to the secret code size
-    if (inputSequence.length > secretCode.length) inputSequence.shift();
-
-    // Check if the input matches the secret code
-    if (inputSequence.toString() === secretCode.toString()) {
-        showStatsButton.style.display = 'block'; // Reveal the stats button
-        inputSequence = []; // Reset the sequence after successful entry
-    }
-});
-
-showStatsButton.addEventListener('click', () => {
-    if (statsContainer.style.display !== 'block') { // Prevent multiple triggers
-        statsContainer.style.display = 'block';
-        showStats();
-    }
-});
-
-resetStatsButton.addEventListener('click', () => {
-    if (confirm('Are you sure you want to reset the stats?')) {
-        localStorage.removeItem('tutorsData');
-        location.reload(); // Reload the page after resetting
-    }
-});
-
-
-// Add stats display for declined sessions
-function showStats() {
-    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
-
-    // Create table elements as a string using template literals
-    let statsHtml = `
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Tutor</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Sessions</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Declined Sessions</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Courses</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    // Loop through tutorsData and generate rows for each tutor
-    Object.entries(tutorsData).forEach(([name, data]) => {
-        const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
-        statsHtml += `
-            <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${name}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${data.sessions}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${data.declinedSessions || 0}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${courses}</td>
-            </tr>
-        `;
-    });
-
-    statsHtml += `
-            </tbody>
-        </table>
-    `;
-
-    // Render the table inside the stats output container
-    statsOutput.innerHTML = statsHtml;
-}
-
-    document.getElementById('export-stats-btn').addEventListener('click', exportStats);
-    // Function to export stats to Google Sheets via doPost
-    function exportStats() {
-        const statsArray = [['Tutor', 'Sessions', 'Declined Sessions', 'Courses']];
-        Object.entries(tutorsData).forEach(([name, data]) => {
-            const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
-            statsArray.push([name, data.sessions, data.declinedSessions || 0, courses]);
-        });
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(statsArray),
-            mode: 'no-cors' // This mode prevents CORS blocking
-        })
-        .then(response => {
-            alert('Stats successfully added to Google Sheets!');
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            alert('Error sending stats.');
-        });
-    }
-
-    // Button to run weekly analysis and send an email via Google Apps Script API
-   function runWeeklyAnalysis() {
-    const analysisUrl = (url + '?function=runAnalysisAndSendEmail'); // Your deployment URL
-
-    fetch(analysisUrl, { method: 'GET', mode: 'no-cors' })
-        .then(response => {
-            alert("Weekly analysis and email sent successfully!"); // Notify the user of success
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while running the analysis.');
-        });
-}
-window.addEventListener("pageshow", function(event) {
-    if (event.persisted) { // Page loaded from cache
-        location.reload(); // Force a reload to get the latest data
-    }
-});
-
-
-document.addEventListener("DOMContentLoaded", function() {
-    function checkForUpdates() {
-        const needsRefresh = sessionStorage.getItem("needsRefresh") === "true";
-        if (needsRefresh) {
-            sessionStorage.removeItem("needsRefresh");
-            location.reload();
-        } else {
-            // Alternatively, you could call populateData() or updateAvailability() here instead of reloading
-            populateData(JSON.parse(localStorage.getItem("yourDataKey") || "[]"));
-        }
-    }
-    
-    // Check every 2 seconds for a refresh flag
-    setInterval(checkForUpdates, 1000);
-});
-
-// Fetch tutors and courses from Google Sheets
-// Fetch tutors and courses from Google Sheets
-function fetchTutorsAndCourses() {
-    fetch(url + "?function=getTutorsAndCourses")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
-            return response.text(); // Get the response as text
-        })
-        .then(text => {
-            console.log("Raw response:", text); // Log the raw response for debugging
-            try {
-                const data = JSON.parse(text); // Attempt to parse as JSON
-                if (Array.isArray(data)) {
-                    tutorsData = data;
-                    renderTutors();
-                    renderCourses(tutorsData); // Pass tutorsData to renderCourses
-                } else {
-                    console.error("Unexpected data format:", data);
-                }
-            } catch (error) {
-                console.error("Error parsing JSON:", error, "Response:", text);
-            }
-        })
-        .catch(error => console.error("Error fetching data:", error));
-}
-
-
-
-
-// Update tutor availability in Google Sheets
-function updateTutorAvailability(tutorName, available) {
-    fetch(url + `?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`${tutorName}'s availability updated successfully!`);
-            fetchTutorsAndCourses(); // Refresh the list after updating
-        } else {
-            alert(`Failed to update availability for ${tutorName}.`);
-        }
-    })
-    .catch(error => console.error("Error updating availability:", error));
-}
-
-// Update the availability when a user toggles it
-document.getElementById('update-availability-btn').addEventListener('click', () => {
-    const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach((checkbox) => {
-        const tutorName = checkbox.parentElement.textContent.trim();
-        const isAvailable = checkbox.checked;
-        updateTutorAvailability(tutorName, isAvailable);
-    });
-});
-
-// Call fetchTutorsAndCourses to load data on page load
-document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
+    // Call fetchTutorsAndCourses to load data on page load
+    document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
 
     </script>
 </body>
 </html>
+
