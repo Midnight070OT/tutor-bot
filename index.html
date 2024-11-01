@@ -335,6 +335,24 @@ window.addEventListener("pageshow", function(event) {
     }
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+    function checkForUpdates() {
+        const needsRefresh = sessionStorage.getItem("needsRefresh") === "true";
+        if (needsRefresh) {
+            sessionStorage.removeItem("needsRefresh");
+            location.reload();
+        } else {
+            // Alternatively, you could call populateData() or updateAvailability() here instead of reloading
+            populateData(JSON.parse(localStorage.getItem("yourDataKey") || "[]"));
+        }
+    }
+    
+    // Check every 2 seconds for a refresh flag
+    setInterval(checkForUpdates, 2000);
+});
+
+
+
 
 
     </script>
