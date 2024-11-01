@@ -85,10 +85,10 @@
 
         function acceptSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
+            tutorsData[tutorName].available = false;
             tutorsData[tutorName].sessions += 1;
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             alert(`${tutorName} accepted the session.`);
-            tutorsData[tutorName].available = false;
             sessionStorage.setItem("NeedsRefresh", "true");
             window.history.back(); // Return to the main page on acceptance
         }
@@ -102,7 +102,6 @@
 
             if (tutorsData[tutorName]) {
                 tutorsData[tutorName].declinedSessions = (tutorsData[tutorName].declinedSessions || 0) + 1;
-                tutorsData[tutorName].available = false; // Mark tutor unavailable
 
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
                 console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debugging
