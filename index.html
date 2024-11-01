@@ -132,10 +132,10 @@
     }
 
  function populateData(data) {
-    if (!data || !Array.isArray(data) || data.length === 0) {
-        console.error("Invalid data format:", data); // Log the invalid data format
-        return; // Exit function if data is invalid
-    }
+    //if (!data || !Array.isArray(data) || data.length === 0) {
+      //  console.error("Invalid data format:", data); // Log the invalid data format
+        //return; // Exit function if data is invalid
+    //}
     
     courses = data[0].slice(1).filter(Boolean); // Extract course names
     tutorsData = {};
