@@ -94,115 +94,147 @@
         </div>
     </div>
 
-    <script>
-    const tutorGrid = document.getElementById('tutor-grid');
-    const courseGrid = document.getElementById('course-grid');
-    const showStatsButton = document.getElementById('show-stats-btn');
-    const statsContainer = document.getElementById('stats-container');
-    const statsOutput = document.getElementById('stats-output');
-    const resetStatsButton = document.getElementById('reset-stats-btn');
-    const url = 'https://script.google.com/macros/s/AKfycbwuPVGr89z_8glwuLScPGYWNEnUCHtkEr9df1bsepeGSpS5eWFQoUYUM7IQ_1sSeurK/exec'; // Replace with your deployment URL
+<script>
+const tutorGrid = document.getElementById('tutor-grid');
+const courseGrid = document.getElementById('course-grid');
+const statsContainer = document.getElementById('stats-container');
+const statsOutput = document.getElementById('stats-output');
+const url = 'https://script.google.com/macros/s/AKfycbxNOeN4SI3eWgLUP6C6XQca8V_FJsIg9C99FVY3NqOAsKtaTh4zZ9MdPCSF_EBLqKh-/exec'; // Replace with your deployment URL
 
-    // Fetch tutors and courses from Google Sheets
-    function fetchTutorsAndCourses() {
-        fetch(url + "?function=getTutorsAndCourses")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                return response.text();
-            })
-            .then(text => {
-                console.log("Raw response:", text);
-                try {
-                    const data = JSON.parse(text);
-                    if (Array.isArray(data)) {
-                        renderTutors(data);
-                        renderCourses(data);
-                    } else {
-                        console.error("Unexpected data format:", data);
-                    }
-                } catch (error) {
-                    console.error("Error parsing JSON:", error, "Response:", text);
-                }
-            })
-            .catch(error => console.error("Error fetching data:", error));
-    }
-
-    // Render tutors and their availability
-    function renderTutors(tutors) {
-        tutorGrid.innerHTML = '';
-        tutors.forEach(({ tutor, available }) => {
-            tutorGrid.innerHTML += `<div class="tutor-item">
-                <label><input type="checkbox" ${available ? 'checked' : ''} onchange="updateTutorAvailability('${tutor}', this.checked)"> ${tutor}</label>
-            </div>`;
-        });
-    }
-
-    // Render unique courses based on tutors' data
-    function renderCourses(tutors) {
-        courseGrid.innerHTML = '';
-        const uniqueCourses = new Set();
-        tutors.forEach(tutor => {
-            if (tutor.courses && Array.isArray(tutor.courses)) {
-                tutor.courses.forEach(course => uniqueCourses.add(course));
-            }
-        });
-
-        Array.from(uniqueCourses).forEach(course => {
-            const courseItem = document.createElement('div');
-            courseItem.className = 'course-item';
-            courseItem.innerHTML = `<button onclick="redirectToRecommendation('${course}')">${course}</button>`;
-            courseGrid.appendChild(courseItem);
-        });
-    }
-
-    // Update tutor availability in Google Sheets
-    function updateTutorAvailability(tutorName, available) {
-        fetch(url + `?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
-            method: 'POST'
+// Fetch and render tutors and courses from the Google Sheets data
+function fetchTutorsAndCourses() {
+    fetch(url + "?function=getTutorsAndCourses")
+        .then(response => response.json())
+        .then(data => {
+            tutorsData = data;
+            renderTutors();
+            renderCourses(tutorsData);
         })
+        .catch(error => console.error("Error fetching data:", error));
+}
+
+// Render tutors with availability checkboxes
+function renderTutors() {
+    tutorGrid.innerHTML = '';
+    tutorsData.forEach(({ tutor, available }) => {
+        tutorGrid.innerHTML += `<div class="tutor-item">
+            <label><input type="checkbox" ${available ? 'checked' : ''} onchange="updateTutorAvailability('${tutor}', this.checked)"> ${tutor}</label>
+        </div>`;
+    });
+}
+
+// Render courses based on tutor data
+function renderCourses(tutors) {
+    const uniqueCourses = new Set();
+    tutors.forEach(tutor => tutor.courses.forEach(course => uniqueCourses.add(course)));
+    
+    courseGrid.innerHTML = '';
+    Array.from(uniqueCourses).forEach(course => {
+        courseGrid.innerHTML += `<div class="course-item">
+            <button onclick="redirectToRecommendation('${course}')">${course}</button>
+        </div>`;
+    });
+}
+
+// Redirect function for course recommendation
+function redirectToRecommendation(course) {
+    window.location.href = `recommendation.html?course=${encodeURIComponent(course)}`;
+}
+
+// Update tutor availability in Google Sheets
+function updateTutorAvailability(tutorName, available) {
+    fetch(url + `?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${tutorName}'s availability updated successfully!`);
+        } else {
+            alert(`Failed to update availability for ${tutorName}.`);
+        }
+    })
+    .catch(error => console.error("Error updating availability:", error));
+}
+
+// Stats functions for viewing, resetting, exporting, and analyzing
+function showStats() {
+    statsOutput.innerHTML = ''; // Reset previous stats
+    fetch(url + "?function=fetchStats")
+        .then(response => response.json())
+        .then(stats => {
+            statsOutput.innerHTML = stats.map(stat => `
+                <tr>
+                    <td>${stat.tutor}</td>
+                    <td>${stat.sessions}</td>
+                    <td>${stat.declinedSessions}</td>
+                    <td>${stat.courses.join(', ')}</td>
+                </tr>`).join('');
+        })
+        .catch(error => console.error("Error fetching stats:", error));
+}
+
+// Reset stats in Google Sheets
+function resetStats() {
+    if (confirm('Are you sure you want to reset the stats?')) {
+        fetch(url + "?function=resetStats", { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Stats reset successfully.");
+                    showStats();
+                } else {
+                    alert("Failed to reset stats.");
+                }
+            })
+            .catch(error => console.error("Error resetting stats:", error));
+    }
+}
+
+// Export stats to Google Sheets
+function exportStats() {
+    fetch(url + "?function=exportStats", { method: 'POST' })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(`${tutorName}'s availability updated successfully!`);
-                fetchTutorsAndCourses(); // Refresh the list after updating
+                alert("Stats exported successfully.");
             } else {
-                alert(`Failed to update availability for ${tutorName}.`);
+                alert("Failed to export stats.");
             }
         })
-        .catch(error => console.error("Error updating availability:", error));
+        .catch(error => console.error("Error exporting stats:", error));
+}
+
+// Run weekly analysis and send report
+function runWeeklyAnalysis() {
+    fetch(url + "?function=runAnalysisAndSendEmail", { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Weekly analysis and email sent successfully.");
+            } else {
+                alert("Failed to send weekly analysis.");
+            }
+        })
+        .catch(error => console.error("Error sending analysis:", error));
+}
+
+// Fetch tutors and courses on page load
+document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
+
+// Konami Code to reveal the stats button
+const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+let inputSequence = [];
+document.addEventListener('keydown', (e) => {
+    inputSequence.push(e.keyCode);
+    if (inputSequence.length > secretCode.length) inputSequence.shift();
+    if (inputSequence.toString() === secretCode.toString()) {
+        document.getElementById('show-stats-btn').style.display = 'block';
+        inputSequence = [];
     }
+});
+</script>
 
-    // Redirect to the recommendation page
-    window.redirectToRecommendation = function(course) {
-        const url = `recommendation.html?course=${encodeURIComponent(course)}`;
-        window.location.href = url;
-    };
-
-    // Call fetchTutorsAndCourses to load data on page load
-    document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
-    // Konami Code to reveal the stats button
-    const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up, Up, Down, Down, Left, Right, Left, Right, B, A
-    let inputSequence = [];
-    
-    // Listen for keydown events to track the input sequence
-    document.addEventListener('keydown', (e) => {
-        inputSequence.push(e.keyCode);
-    
-        // Keep the input sequence length equal to the secret code length
-        if (inputSequence.length > secretCode.length) {
-            inputSequence.shift();
-        }
-    
-        // Check if the input sequence matches the secret code
-        if (inputSequence.toString() === secretCode.toString()) {
-            document.getElementById('show-stats-btn').style.display = 'block'; // Reveal the stats button
-            inputSequence = []; // Reset the sequence after successful entry
-        }
-    });
-
-    </script>
 </body>
 </html>
 
