@@ -88,6 +88,7 @@
             tutorsData[tutorName].sessions += 1;
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             alert(`${tutorName} accepted the session.`);
+            tutorsData[tutorName].available = false;
             window.history.back(); // Return to the main page on acceptance
         }
 
