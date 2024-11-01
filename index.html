@@ -143,7 +143,7 @@ function redirectToRecommendation(course) {
 
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
-    fetch(url + ?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}, {
+    fetch(url + '?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}', {
         method: 'POST'
     })
     .then(response => response.json())
