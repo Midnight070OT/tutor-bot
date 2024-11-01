@@ -129,30 +129,41 @@
         reader.readAsArrayBuffer(file);
     }
 
-    function populateData(data) {
-        courses = data[0].slice(1).filter(Boolean); // Extract course names
-        tutorsData = {};
+   function populateData(data) {
+    courses = data[0].slice(1).filter(Boolean); // Extract course names
 
-        data.slice(1).forEach(row => {
-            const tutorName = row[0];
-            const tutorCourses = row.slice(1)
-                .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
-                .filter(Boolean);
+    // Retrieve existing tutorsData from local storage if available
+    let existingTutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
 
-            tutorsData[tutorName] = {
-                available: true,
-                sessions: 0,
-                declinedSessions: 0,
-                courses: tutorCourses
-            };
-        });
+    tutorsData = {};
 
-        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-        localStorage.setItem('courses', JSON.stringify(courses));
-        updateAvailability();
-        renderTutors();
-        renderCourses(courses);
-    }
+    data.slice(1).forEach(row => {
+        const tutorName = row[0];
+        const tutorCourses = row.slice(1)
+            .map((value, index) => value.toLowerCase() === 'x' ? courses[index] : null)
+            .filter(Boolean);
+
+        // Check if availability is already set in local storage; default to true if not
+        const isAvailable = existingTutorsData[tutorName]?.available ?? true;
+
+        tutorsData[tutorName] = {
+            available: isAvailable,
+            sessions: existingTutorsData[tutorName]?.sessions || 0,
+            declinedSessions: existingTutorsData[tutorName]?.declinedSessions || 0,
+            courses: tutorCourses
+        };
+    });
+
+    // Update localStorage with the latest data
+    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+    localStorage.setItem('courses', JSON.stringify(courses));
+
+    // Call update functions
+    updateAvailability();
+    renderTutors();
+    renderCourses(courses);
+}
+
 
     function renderTutors() {
         tutorGrid.innerHTML = '';
