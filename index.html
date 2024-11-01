@@ -131,10 +131,10 @@
         reader.readAsArrayBuffer(file);
     }
 
-  function populateData(data) {
+ function populateData(data) {
     if (!data || !Array.isArray(data) || data.length === 0) {
-        console.error("Invalid data format:", data);
-        return;
+        console.error("Invalid data format:", data); // Log the invalid data format
+        return; // Exit function if data is invalid
     }
     
     courses = data[0].slice(1).filter(Boolean); // Extract course names
@@ -159,6 +159,7 @@
     renderTutors();
     renderCourses(courses);
 }
+
 
 
 
@@ -322,11 +323,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 window.addEventListener("pageshow", function(event) {
-    if (event.persisted) { // Checks if the page is being loaded from cache
-        // Call your functions to update data without reloading the page
-        populateData(JSON.parse(localStorage.getItem("yourDataKey") || "[]"));
+    if (event.persisted) { // Page loaded from cache
+        location.reload(); // Force a reload to get the latest data
     }
 });
+
 
 document.addEventListener("DOMContentLoaded", function() {
     function checkForUpdates() {
@@ -347,16 +348,26 @@ document.addEventListener("DOMContentLoaded", function() {
 // Fetch tutors and courses from Google Sheets
 function fetchTutorsAndCourses() {
     fetch(url + "?function=getTutorsAndCourses")
-        .then(response => response.text()) // Get the response as text instead of JSON
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.text(); // Get the response as text
+        })
         .then(text => {
             console.log("Raw response:", text); // Log the raw response for debugging
-            const data = JSON.parse(text); // Parse it as JSON
-            tutorsData = data;
-            renderTutors();
-            renderCourses();
+            try {
+                const data = JSON.parse(text); // Attempt to parse as JSON
+                tutorsData = data;
+                renderTutors();
+                renderCourses();
+            } catch (error) {
+                console.error("Error parsing JSON:", error, "Response:", text);
+            }
         })
         .catch(error => console.error("Error fetching data:", error));
 }
+
 
 
 // Update tutor availability in Google Sheets
@@ -388,10 +399,6 @@ document.getElementById('update-availability-btn').addEventListener('click', () 
 
 // Call fetchTutorsAndCourses to load data on page load
 document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
-
-
-
-
 
     </script>
 </body>
