@@ -99,7 +99,7 @@ const tutorGrid = document.getElementById('tutor-grid');
 const courseGrid = document.getElementById('course-grid');
 const statsContainer = document.getElementById('stats-container');
 const statsOutput = document.getElementById('stats-output');
-const url = 'https://script.google.com/macros/s/AKfycbzDlCtj2Fr6hS1JG6OWWY3N9_Iw70WV_g0B8Ij0ri96ocDd4PMhlBzEtzCZNSexF3IW/exec'; // Replace with your deployment URL
+const url = 'https://script.google.com/macros/s/AKfycbwTel-dobbgMVJMZy0AN_RyGoeg1re7tQaPMul8alzSvpS5pMKXkFT2ev-TqgJHIkyU/exec'; // Replace with your deployment URL
 
 // Fetch and render tutors and courses from the Google Sheets data
 function fetchTutorsAndCourses() {
@@ -143,118 +143,87 @@ function redirectToRecommendation(course) {
 
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
-    fetch(url + `?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
+    fetch(url + ?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}, {
         method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`${tutorName}'s availability updated successfully!`);
+            alert(${tutorName}'s availability updated successfully!);
+            fetchTutorsAndCourses(); // Refresh the list after updating
         } else {
-            alert(`Failed to update availability for ${tutorName}.`);
+            alert(Failed to update availability for ${tutorName}.);
         }
     })
     .catch(error => console.error("Error updating availability:", error));
 }
 
-// Stats functions for viewing, resetting, exporting, and analyzing
+// Update the availability when a user toggles it
+document.getElementById('update-availability-btn').addEventListener('click', () => {
+    const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+        const tutorName = checkbox.parentElement.textContent.trim();
+        const isAvailable = checkbox.checked;
+        updateTutorAvailability(tutorName, isAvailable);
+    });
+});
+
+// Show Stats
 function showStats() {
-    statsOutput.innerHTML = ''; // Reset previous stats content
-    
-    // Make a request to fetch stats from Google Sheets
-    fetch(url + "?function=fetchStats")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
-            return response.json();
-        })
-        .then(stats => {
-            if (stats && stats.length > 0) {
-                // Populate stats in the table if data is returned
-                let rowsHtml = stats.map(stat => `
-                    <tr>
-                        <td>${stat.tutor}</td>
-                        <td>${stat.sessions}</td>
-                        <td>${stat.declinedSessions}</td>
-                        <td>${stat.courses.join(', ')}</td>
-                    </tr>
-                `).join('');
-                
-                statsOutput.innerHTML = `
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr>
-                                <th>Tutor</th>
-                                <th>Sessions</th>
-                                <th>Declined Sessions</th>
-                                <th>Courses</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                `;
-                statsContainer.style.display = 'block'; // Show the stats container
-            } else {
-                statsOutput.innerHTML = `<p>No stats available to display.</p>`;
-                statsContainer.style.display = 'block'; // Show even if empty to indicate no data
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching stats:", error);
-            statsOutput.innerHTML = `<p>Error fetching stats data.</p>`;
-            statsContainer.style.display = 'block'; // Show error message in stats container
-        });
+  fetch(url+ '?function=showStats')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Display stats data on the page
+        console.log(data.stats);
+      } else {
+        console.error("Error showing stats:", data.error);
+      }
+    });
 }
 
-
-// Reset stats in Google Sheets
+// Reset Stats
 function resetStats() {
-    if (confirm('Are you sure you want to reset the stats?')) {
-        fetch(url + "?function=resetStats", { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Stats reset successfully.");
-                    showStats();
-                } else {
-                    alert("Failed to reset stats.");
-                }
-            })
-            .catch(error => console.error("Error resetting stats:", error));
-    }
+  fetch(url+ '?function=resetStats')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+      } else {
+        console.error("Error resetting stats:", data.error);
+      }
+    });
 }
 
-// Export stats to Google Sheets
+// Export Stats
 function exportStats() {
-    fetch(url + "?function=exportStats", { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Stats exported successfully.");
-            } else {
-                alert("Failed to export stats.");
-            }
-        })
-        .catch(error => console.error("Error exporting stats:", error));
+  fetch(url+'?function=exportStats')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+      } else {
+        console.error("Error exporting stats:", data.error);
+      }
+    });
 }
+
+
 
 // Run weekly analysis and send report
-function runWeeklyAnalysis() {
-    fetch(url + "?function=runAnalysisAndSendEmail", { method: 'GET' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Weekly analysis and email sent successfully.");
-            } else {
-                alert("Failed to send weekly analysis.");
-            }
-        })
-        .catch(error => console.error("Error sending analysis:", error));
-}
+// Button to run weekly analysis and send an email via Google Apps Script API
+ function runWeeklyAnalysis() {
+    const analysisUrl = (url + '?function=runAnalysisAndSendEmail'); // Your deployment URL
 
+    fetch(analysisUrl, { method: 'GET', mode: 'no-cors' })
+        .then(response => {
+            alert("Weekly analysis and email sent successfully!"); // Notify the user of success
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while running the analysis.');
+        });
+}
 // Fetch tutors and courses on page load
 document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
 
