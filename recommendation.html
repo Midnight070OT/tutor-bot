@@ -89,6 +89,7 @@
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             alert(`${tutorName} accepted the session.`);
             tutorsData[tutorName].available = false;
+            sessionStorage.setItem("NeedsRefresh", "true");
             window.history.back(); // Return to the main page on acceptance
         }
 
@@ -116,6 +117,7 @@
         function markInSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
             tutorsData[tutorName].available = false;
+            sessionStorage.setItem("NeedsRefresh", "true");
             localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
             alert(`${tutorName} is now in session. Finding another tutor...`);
             recommendTutor(); // Recommend another tutor
