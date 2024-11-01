@@ -274,7 +274,7 @@ function showStats() {
         });
 
         // API URL for the doPost function
-        const url = 'https://script.google.com/macros/s/AKfycbw7XEzxTAjIdh1LQpp9Canaohb1vdIs5vZPo773eJNjxw5ElbRcz0DzXDtzlRgqXRzO/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbxGxXy8USP52WiuFfkuJlNEV__8z3ZL8bsaJvMR-BnIh8vZuZS7mghTKTDhrOHIjOrZ/exec'; // Replace with your deployment URL
 
         fetch(url, {
             method: 'POST',
@@ -292,19 +292,19 @@ function showStats() {
     }
 
     // Button to run weekly analysis and send an email via Google Apps Script API
-    function runWeeklyAnalysis() {
-        const analysisUrl = 'https://script.google.com/macros/s/AKfycbw7XEzxTAjIdh1LQpp9Canaohb1vdIs5vZPo773eJNjxw5ElbRcz0DzXDtzlRgqXRzO/exec?function=runAnalysisAndSendEmail'; // Replace with your web app URL + function parameter
+   function runWeeklyAnalysis() {
+    const analysisUrl = 'https://script.google.com/macros/s/AKfycbxGxXy8USP52WiuFfkuJlNEV__8z3ZL8bsaJvMR-BnIh8vZuZS7mghTKTDhrOHIjOrZ/exec?function=runAnalysisAndSendEmail'; // Your deployment URL
 
-        fetch(analysisUrl, { method: 'GET', mode:'no-cors'})
-            .then(response => response.text())
-            .then(data => {
-                alert(data); // Notify the user about the success
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while running the analysis.');
-            });
-    }
+    fetch(analysisUrl, { method: 'GET', mode: 'no-cors' })
+        .then(response => {
+            alert("Weekly analysis and email sent successfully!"); // Notify the user of success
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while running the analysis.');
+        });
+}
+
 
     </script>
 </body>
