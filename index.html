@@ -304,6 +304,19 @@ function showStats() {
             alert('An error occurred while running the analysis.');
         });
 }
+        <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Check if the page needs to be refreshed based on the flag
+    if (sessionStorage.getItem("needsRefresh") === "true") {
+        // Clear the flag to prevent an infinite refresh loop
+        sessionStorage.removeItem("needsRefresh");
+
+        // Refresh the page or trigger availability update functions
+        location.reload(); // This will reload the entire page
+        // Or, if you have a specific function to refresh data, use that instead
+        // updateAvailability(); // Example of a custom function
+    }
+});
 
 
     </script>
