@@ -108,6 +108,8 @@
     const statsContainer = document.getElementById('stats-container');
     const statsOutput = document.getElementById('stats-output');
     const resetStatsButton = document.getElementById('reset-stats-btn');
+    const url = 'https://script.google.com/macros/s/AKfycbyBHs7IF0HPAjYzLx-gPaoXFHgHIFELr-Vyp0LMqybTmFJ9WMjDcns3MMtM8U9g-I-P/exec'; // Replace with your deployment URL
+
 
     let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
     let courses = JSON.parse(localStorage.getItem('courses')) || [];
@@ -283,10 +285,6 @@ function showStats() {
             const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
             statsArray.push([name, data.sessions, data.declinedSessions || 0, courses]);
         });
-
-        // API URL for the doPost function
-        const url = 'https://script.google.com/macros/s/AKfycbyBHs7IF0HPAjYzLx-gPaoXFHgHIFELr-Vyp0LMqybTmFJ9WMjDcns3MMtM8U9g-I-P/exec'; // Replace with your deployment URL
-
         fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -304,7 +302,7 @@ function showStats() {
 
     // Button to run weekly analysis and send an email via Google Apps Script API
    function runWeeklyAnalysis() {
-    const analysisUrl = 'https://script.google.com/macros/s/AKfycbyBHs7IF0HPAjYzLx-gPaoXFHgHIFELr-Vyp0LMqybTmFJ9WMjDcns3MMtM8U9g-I-P/exec?function=runAnalysisAndSendEmail'; // Your deployment URL
+    const analysisUrl = (url + '?function=runAnalysisAndSendEmail'); // Your deployment URL
 
     fetch(analysisUrl, { method: 'GET', mode: 'no-cors' })
         .then(response => {
