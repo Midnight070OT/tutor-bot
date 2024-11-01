@@ -269,6 +269,20 @@ document.addEventListener('keydown', (e) => {
         inputSequence = [];
     }
 });
+document.addEventListener("DOMContentLoaded", function() {
+    // Get button elements
+    const viewStatsButton = document.getElementById("show-stats-btn");
+    const resetStatsButton = document.getElementById("reset-stats-btn");
+    const exportStatsButton = document.getElementById("export-stats-btn");
+    const runWeeklyAnalysisButton = document.getElementById("run-weekly-analysis-btn");
+
+    // Add event listeners for each button
+    viewStatsButton.addEventListener("click", showStats);
+    resetStatsButton.addEventListener("click", resetStats);
+    exportStatsButton.addEventListener("click", exportStats);
+    runWeeklyAnalysisButton.addEventListener("click", runWeeklyAnalysis);
+});
+
 </script>
 
 </body>
