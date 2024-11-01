@@ -149,6 +149,7 @@
 
         localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
         localStorage.setItem('courses', JSON.stringify(courses));
+        updateAvailability();
         renderTutors();
         renderCourses(courses);
     }
