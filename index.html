@@ -74,9 +74,6 @@
     </div>
 
     <div class="container">
-        <h2>Upload Tutor Schedule</h2>
-        <input type="file" id="file-input" />
-
         <h2>Tutors</h2>
         <div id="tutor-grid" class="tutor-grid"></div>
         
@@ -132,10 +129,6 @@
     }
 
  function populateData(data) {
-    //if (!data || !Array.isArray(data) || data.length === 0) {
-      //  console.error("Invalid data format:", data); // Log the invalid data format
-        //return; // Exit function if data is invalid
-    //}
     
     courses = data[0].slice(1).filter(Boolean); // Extract course names
     tutorsData = {};
@@ -337,18 +330,6 @@ function showStats() {
             alert('An error occurred while running the analysis.');
         });
 }
-document.addEventListener("DOMContentLoaded", function() {
-    // Check if the page needs to be refreshed based on the flag
-    if (sessionStorage.getItem("needsRefresh") === "true") {
-        // Clear the flag to prevent an infinite refresh loop
-        sessionStorage.removeItem("needsRefresh");
-
-        // Refresh the page or trigger availability update functions
-        location.reload(); // This will reload the entire page
-        // Or, if you have a specific function to refresh data, use that instead
-        // updateAvailability(); // Example of a custom function
-    }
-});
 window.addEventListener("pageshow", function(event) {
     if (event.persisted) { // Page loaded from cache
         location.reload(); // Force a reload to get the latest data
@@ -369,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     // Check every 2 seconds for a refresh flag
-    setInterval(checkForUpdates, 2000);
+    setInterval(checkForUpdates, 1000);
 });
 
 // Fetch tutors and courses from Google Sheets
