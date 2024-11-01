@@ -159,20 +159,56 @@ function updateTutorAvailability(tutorName, available) {
 
 // Stats functions for viewing, resetting, exporting, and analyzing
 function showStats() {
-    statsOutput.innerHTML = ''; // Reset previous stats
+    statsOutput.innerHTML = ''; // Reset previous stats content
+    
+    // Make a request to fetch stats from Google Sheets
     fetch(url + "?function=fetchStats")
-        .then(response => response.json())
-        .then(stats => {
-            statsOutput.innerHTML = stats.map(stat => `
-                <tr>
-                    <td>${stat.tutor}</td>
-                    <td>${stat.sessions}</td>
-                    <td>${stat.declinedSessions}</td>
-                    <td>${stat.courses.join(', ')}</td>
-                </tr>`).join('');
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
         })
-        .catch(error => console.error("Error fetching stats:", error));
+        .then(stats => {
+            if (stats && stats.length > 0) {
+                // Populate stats in the table if data is returned
+                let rowsHtml = stats.map(stat => `
+                    <tr>
+                        <td>${stat.tutor}</td>
+                        <td>${stat.sessions}</td>
+                        <td>${stat.declinedSessions}</td>
+                        <td>${stat.courses.join(', ')}</td>
+                    </tr>
+                `).join('');
+                
+                statsOutput.innerHTML = `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th>Tutor</th>
+                                <th>Sessions</th>
+                                <th>Declined Sessions</th>
+                                <th>Courses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                `;
+                statsContainer.style.display = 'block'; // Show the stats container
+            } else {
+                statsOutput.innerHTML = `<p>No stats available to display.</p>`;
+                statsContainer.style.display = 'block'; // Show even if empty to indicate no data
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching stats:", error);
+            statsOutput.innerHTML = `<p>Error fetching stats data.</p>`;
+            statsContainer.style.display = 'block'; // Show error message in stats container
+        });
 }
+
 
 // Reset stats in Google Sheets
 function resetStats() {
