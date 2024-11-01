@@ -163,14 +163,26 @@
 
 
 
-    function renderTutors() {
-        tutorGrid.innerHTML = '';
-        Object.entries(tutorsData).forEach(([name, data]) => {
-            tutorGrid.innerHTML += `<div class="tutor-item"><label><input type="checkbox" ${data.available ? 'checked' : ''}> ${name}</label></div>`;
-        });
+function renderTutors() {
+    if (!tutorsData || !Array.isArray(tutorsData)) {
+        console.error("Invalid tutorsData format:", tutorsData);
+        return;
     }
 
+    tutorGrid.innerHTML = '';
+    tutorsData.forEach(({ tutor, available }) => {
+        tutorGrid.innerHTML += `<div class="tutor-item">
+            <label><input type="checkbox" ${available ? 'checked' : ''}> ${tutor}</label>
+        </div>`;
+    });
+}
+
 function renderCourses(tutors) {
+    if (!tutors || !Array.isArray(tutors)) {
+        console.error("Invalid data format for tutors:", tutors);
+        return;
+    }
+
     courseGrid.innerHTML = ''; // Clear previous content
 
     // Create a set to store unique courses
@@ -178,9 +190,13 @@ function renderCourses(tutors) {
 
     // Loop through each tutor to gather unique courses
     tutors.forEach(tutor => {
-        tutor.courses.forEach(course => {
-            uniqueCourses.add(course);
-        });
+        if (tutor.courses && Array.isArray(tutor.courses)) {
+            tutor.courses.forEach(course => {
+                uniqueCourses.add(course);
+            });
+        } else {
+            console.warn("Tutor has no courses or courses is not an array:", tutor);
+        }
     });
 
     // Convert the Set to an array and create course buttons
@@ -193,7 +209,6 @@ function renderCourses(tutors) {
         courseGrid.appendChild(courseItem);
     });
 }
-
     window.redirectToRecommendation = function(course) {
         const url = `recommendation.html?course=${encodeURIComponent(course)}`;
         window.location.href = url;
@@ -358,6 +373,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // Fetch tutors and courses from Google Sheets
+// Fetch tutors and courses from Google Sheets
 function fetchTutorsAndCourses() {
     fetch(url + "?function=getTutorsAndCourses")
         .then(response => {
@@ -370,15 +386,20 @@ function fetchTutorsAndCourses() {
             console.log("Raw response:", text); // Log the raw response for debugging
             try {
                 const data = JSON.parse(text); // Attempt to parse as JSON
-                tutorsData = data;
-                renderTutors();
-                renderCourses();
+                if (Array.isArray(data)) {
+                    tutorsData = data;
+                    renderTutors();
+                    renderCourses(tutorsData); // Pass tutorsData to renderCourses
+                } else {
+                    console.error("Unexpected data format:", data);
+                }
             } catch (error) {
                 console.error("Error parsing JSON:", error, "Response:", text);
             }
         })
         .catch(error => console.error("Error fetching data:", error));
 }
+
 
 
 
