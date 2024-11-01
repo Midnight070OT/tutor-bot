@@ -274,7 +274,7 @@ function showStats() {
         });
 
         // API URL for the doPost function
-        const url = 'https://script.google.com/macros/s/AKfycbyBaSx4TvrFu9QTAC66lNofh5AgDMfhTZflkQRPQ1jA7K5OYmxBcYjp-Jx7Lg90piMV/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbw7XEzxTAjIdh1LQpp9Canaohb1vdIs5vZPo773eJNjxw5ElbRcz0DzXDtzlRgqXRzO/exec'; // Replace with your deployment URL
 
         fetch(url, {
             method: 'POST',
@@ -293,7 +293,7 @@ function showStats() {
 
     // Button to run weekly analysis and send an email via Google Apps Script API
     function runWeeklyAnalysis() {
-        const analysisUrl = 'https://script.google.com/macros/s/AKfycbyBaSx4TvrFu9QTAC66lNofh5AgDMfhTZflkQRPQ1jA7K5OYmxBcYjp-Jx7Lg90piMV/exec?function=runAnalysisAndSendEmail'; // Replace with your web app URL + function parameter
+        const analysisUrl = 'https://script.google.com/macros/s/AKfycbw7XEzxTAjIdh1LQpp9Canaohb1vdIs5vZPo773eJNjxw5ElbRcz0DzXDtzlRgqXRzO/exec?function=runAnalysisAndSendEmail'; // Replace with your web app URL + function parameter
 
         fetch(analysisUrl, { method: 'GET', mode:'no-cors'})
             .then(response => response.text())
