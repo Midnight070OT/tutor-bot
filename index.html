@@ -149,10 +149,10 @@ function updateTutorAvailability(tutorName, available) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(${tutorName}s availability updated successfully);
+            alert(`${tutorName}'s availability updated successfully`);
             fetchTutorsAndCourses(); // Refresh the list after updating
         } else {
-            alert(Failed to update availability for ${tutorName}.);
+            alert('Failed to update availability for '${tutorName}.');
         }
     })
     .catch(error => console.error("Error updating availability:", error));
