@@ -39,6 +39,7 @@
 const tutorGrid = document.getElementById('tutor-grid');
 const courseGrid = document.getElementById('course-grid');
 const url = 'https://script.google.com/macros/s/AKfycbwL_ACWUYtBJDdx0fMaYRfh873GPupwYpNH6YAa8BrQ2tk1PzCj7NEPFuRZGXunqcrP/exec'; // Replace with your actual Google Apps Script URL
+const curl= 'https://us-east1-thinking-heaven-440715-h0.cloudfunctions.net/updateTutorAvailability';
 
 // Fetch tutors and courses from Google Sheets data
 function fetchTutorsAndCourses() {
@@ -75,20 +76,21 @@ function renderTutors() {
 
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
-    fetch(`${url}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
+    fetch(`${curl}?tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
         method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             alert(`${tutorName}'s availability updated successfully`);
-            fetchTutorsAndCourses(); // Refresh list
+            fetchTutorsAndCourses(); // Refresh the list to show the latest data
         } else {
-            alert(`Failed to update availability for ${tutorName}`);
+            alert(`Failed to update availability for ${tutorName}: ${data.error}`);
         }
     })
     .catch(error => console.error("Error updating availability:", error));
 }
+
 
 // Konami Code to reveal stats
 const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
