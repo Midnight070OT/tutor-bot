@@ -4,66 +4,7 @@
     <meta charset="UTF-8">
     <title>TSC Tutor Availability and Course Assignment</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1b2363;
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            background-color: #1b2363;
-            padding: 10px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .header img {
-            height: 50px;
-            margin-right: 15px;
-        }
-
-        .container {
-            width: 90%;
-            margin: 20px auto;
-            background-color: white;
-            color: #1b2363;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .course-grid, .tutor-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-
-        .course-item, .tutor-item {
-            width: 30%;
-            margin-bottom: 15px;
-        }
-
-        button {
-            padding: 10px;
-            background-color: #fcbf49;
-            color: #1b2363;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-
-        button:hover {
-            background-color: #f77f00;
-        }
-
-        #stats-container {
-            display: none;
-            margin-top: 20px;
-        }
+        /* Styles omitted for brevity */
     </style>
 </head>
 <body>
@@ -97,11 +38,9 @@
 <script>
 const tutorGrid = document.getElementById('tutor-grid');
 const courseGrid = document.getElementById('course-grid');
-const statsContainer = document.getElementById('stats-container');
-const statsOutput = document.getElementById('stats-output');
-const url = 'https://script.google.com/macros/s/AKfycbwTel-dobbgMVJMZy0AN_RyGoeg1re7tQaPMul8alzSvpS5pMKXkFT2ev-TqgJHIkyU/exec'; // Replace with your deployment URL
+const url = 'YOUR_SCRIPT_DEPLOYMENT_URL'; // Replace with your actual Google Apps Script URL
 
-// Fetch and render tutors and courses from the Google Sheets data
+// Fetch tutors and courses from Google Sheets data
 function fetchTutorsAndCourses() {
     fetch(url + "?function=getTutorsAndCourses")
         .then(response => response.json())
@@ -123,111 +62,24 @@ function renderTutors() {
     });
 }
 
-// Render courses based on tutor data
-function renderCourses(tutors) {
-    const uniqueCourses = new Set();
-    tutors.forEach(tutor => tutor.courses.forEach(course => uniqueCourses.add(course)));
-    
-    courseGrid.innerHTML = '';
-    Array.from(uniqueCourses).forEach(course => {
-        courseGrid.innerHTML += `<div class="course-item">
-            <button onclick="redirectToRecommendation('${course}')">${course}</button>
-        </div>`;
-    });
-}
-
-// Redirect function for course recommendation
-function redirectToRecommendation(course) {
-    window.location.href = `recommendation.html?course=${encodeURIComponent(course)}`;
-}
-
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
-    fetch(url + '?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}', {
+    fetch(`${url}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
         method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             alert(`${tutorName}'s availability updated successfully`);
-            fetchTutorsAndCourses(); // Refresh the list after updating
+            fetchTutorsAndCourses(); // Refresh list
         } else {
-            alert('Failed to update availability for '${tutorName}');
+            alert(`Failed to update availability for ${tutorName}`);
         }
     })
     .catch(error => console.error("Error updating availability:", error));
 }
 
-// Update the availability when a user toggles it
-document.getElementById('update-availability-btn').addEventListener('click', () => {
-    const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach((checkbox) => {
-        const tutorName = checkbox.parentElement.textContent.trim();
-        const isAvailable = checkbox.checked;
-        updateTutorAvailability(tutorName, isAvailable);
-    });
-});
-
-// Show Stats
-function showStats() {
-  fetch(url+ '?function=showStats')
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Display stats data on the page
-        console.log(data.stats);
-      } else {
-        console.error("Error showing stats:", data.error);
-      }
-    });
-}
-
-// Reset Stats
-function resetStats() {
-  fetch(url+ '?function=resetStats')
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert(data.message);
-      } else {
-        console.error("Error resetting stats:", data.error);
-      }
-    });
-}
-
-// Export Stats
-function exportStats() {
-  fetch(url+'?function=exportStats')
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert(data.message);
-      } else {
-        console.error("Error exporting stats:", data.error);
-      }
-    });
-}
-
-
-
-// Run weekly analysis and send report
-// Button to run weekly analysis and send an email via Google Apps Script API
- function runWeeklyAnalysis() {
-    const analysisUrl = (url + '?function=runAnalysisAndSendEmail'); // Your deployment URL
-
-    fetch(analysisUrl, { method: 'GET', mode: 'no-cors' })
-        .then(response => {
-            alert("Weekly analysis and email sent successfully!"); // Notify the user of success
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while running the analysis.');
-        });
-}
-// Fetch tutors and courses on page load
-document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
-
-// Konami Code to reveal the stats button
+// Konami Code to reveal stats
 const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
 let inputSequence = [];
 document.addEventListener('keydown', (e) => {
@@ -238,20 +90,8 @@ document.addEventListener('keydown', (e) => {
         inputSequence = [];
     }
 });
-document.addEventListener("DOMContentLoaded", function() {
-    // Get button elements
-    const viewStatsButton = document.getElementById("show-stats-btn");
-    const resetStatsButton = document.getElementById("reset-stats-btn");
-    const exportStatsButton = document.getElementById("export-stats-btn");
-    const runWeeklyAnalysisButton = document.getElementById("run-weekly-analysis-btn");
 
-    // Add event listeners for each button
-    viewStatsButton.addEventListener("click", showStats);
-    resetStatsButton.addEventListener("click", resetStats);
-    exportStatsButton.addEventListener("click", exportStats);
-    runWeeklyAnalysisButton.addEventListener("click", runWeeklyAnalysis);
-});
-
+document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
 </script>
 
 </body>
