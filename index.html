@@ -94,7 +94,8 @@
         <div id="stats-container">
             <div id="stats-output"></div>
             <button id="reset-stats-btn">Reset Stats</button>
-            <button id="export-stats-btn">Export & Send Stats</button>
+            <button id="export-daily-stats-btn">Export Daily Stats</button>
+            <button id="run-weekly-summary-btn">Generate Weekly Summary</button>
         </div>
     </div>
 
@@ -106,7 +107,7 @@
         const statsContainer = document.getElementById('stats-container');
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
-        const url = 'https://script.google.com/macros/s/AKfycbyARLqs53QHYZ0ZP2NMEL03EoYeWs83IV42GEP1kqN2mTIPC2U7h5-LxbtskVjfww/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbxqUNbTP443bH1ZVbalF5Q96JEUM8DDXVu1zq6dOaNlL2syvcUEKEsuatSoJPaaYJCo/exec'; // Replace with your deployment URL
 
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
@@ -280,39 +281,29 @@ function showStats() {
     // Render the table inside the stats output container
     statsOutput.innerHTML = statsHtml;
 }
-        document.getElementById('export-stats-btn').addEventListener('click', exportStats);
 
-function exportStats() {
-    const tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+document.getElementById('export-daily-stats-btn').addEventListener('click', exportDailyStats);
+document.getElementById('run-weekly-summary-btn').addEventListener('click', runWeeklySummary);
 
-    // Prepare the data for Excel
-    const statsArray = [['Tutor', 'Sessions', 'Declined Sessions', 'Courses']];
-    Object.entries(tutorsData).forEach(([name, data]) => {
-        const courses = Array.isArray(data.courses) ? data.courses.join(', ') : 'None';
-        statsArray.push([name, data.sessions, data.declinedSessions || 0, courses]);
+function exportDailyStats() {
+  fetch(`${url}?function=exportStats`, { method: 'GET' })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) alert(data.message);
+      else console.error("Error exporting stats:", data.error);
     });
-
-    // Create a new workbook and worksheet
-    const worksheet = XLSX.utils.aoa_to_sheet(statsArray);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tutor Stats');
-
-    // Export the workbook to a binary string
-    const excelData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-    // Trigger download of the Excel file
-    const blob = new Blob([excelData], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tutor_stats.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    // Optional: Trigger email sending after export
-    sendEmailWithAttachment(statsArray);
 }
+
+function generateWeeklySummary() {
+  fetch(`${url}?function=runAnalysisAndSendEmail`, { method: 'GET' })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) alert(data.message);
+      else console.error("Error generating weekly summary:", data.error);
+    });
+}
+
+
 function sendEmailWithAttachment(statsArray) {
     fetch(url, {
         method: 'POST',
