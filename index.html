@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>TSC Tutor Availability and Course Assignment</title>
     <style>
-        /* Styles omitted for brevity */
+        /* Add relevant styles here */
     </style>
 </head>
 <body>
@@ -17,9 +17,6 @@
         <h2>Tutors</h2>
         <div id="tutor-grid" class="tutor-grid"></div>
         
-        <!-- Update availability button -->
-        <button id="update-availability-btn">Update Availability</button>
-
         <h2>Courses</h2>
         <div id="course-grid" class="course-grid"></div>
 
@@ -38,12 +35,11 @@
 <script>
 const tutorGrid = document.getElementById('tutor-grid');
 const courseGrid = document.getElementById('course-grid');
-const url = 'https://script.google.com/macros/s/AKfycbwL_ACWUYtBJDdx0fMaYRfh873GPupwYpNH6YAa8BrQ2tk1PzCj7NEPFuRZGXunqcrP/exec'; 
-const curl= 'https://us-east1-thinking-heaven-440715-h0.cloudfunctions.net/updateTutorAvailability';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbx8mHX7iyAVc9hdDlDAh5Rm6pvO_3TXVkH3Hc1uXKFplqrPD8K5GsWjUHb8wGg3TZNQ/exec'; // Replace with your Google Apps Script URL
 
 // Fetch tutors and courses from Google Sheets data
 function fetchTutorsAndCourses() {
-    fetch(url + "?function=getTutorsAndCourses")
+    fetch(`${scriptURL}?function=getTutorsAndCourses`)
         .then(response => response.json())
         .then(data => {
             tutorsData = data;
@@ -62,7 +58,9 @@ function renderTutors() {
         </div>`;
     });
 }
-    function renderCourses(tutors) {
+
+// Render unique courses as buttons
+function renderCourses(tutors) {
     const uniqueCourses = new Set();
     tutors.forEach(tutor => tutor.courses.forEach(course => uniqueCourses.add(course)));
     
@@ -74,23 +72,27 @@ function renderTutors() {
     });
 }
 
+// Redirect to recommendation.html for a specific course
+function redirectToRecommendation(course) {
+    window.location.href = `recommendation.html?course=${encodeURIComponent(course)}`;
+}
+
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
-    fetch(`${curl}?tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
+    fetch(`${scriptURL}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
         method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             alert(`${tutorName}'s availability updated successfully`);
-            fetchTutorsAndCourses(); // Refresh the list to show the latest data
+            fetchTutorsAndCourses(); // Refresh to show latest data
         } else {
-            alert(`Failed to update availability for ${tutorName}: ${data.error}`);
+            alert(`Failed to update availability for ${tutorName}: ${data.message}`);
         }
     })
     .catch(error => console.error("Error updating availability:", error));
 }
-
 
 // Konami Code to reveal stats
 const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
@@ -109,5 +111,4 @@ document.addEventListener("DOMContentLoaded", fetchTutorsAndCourses);
 
 </body>
 </html>
-
 
