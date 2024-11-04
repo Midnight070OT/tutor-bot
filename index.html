@@ -306,7 +306,7 @@ function sendEmailWithAttachment(statsArray) {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stats: statsArray }),
+        body: JSON.stringify({ stats: statsArray })
     })
     .then(response => response.json())
     .then(data => {
