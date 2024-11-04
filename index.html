@@ -39,7 +39,7 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbyTZN3DqZ9kmog84WcUIK
 
 // Fetch tutors and courses from Google Sheets data
 function fetchTutorsAndCourses() {
-    fetch(`${scriptURL}?function=getTutorsAndCourses`)
+    fetch(`${scriptURL}?function=getTutorsAndCourses`, {mode:'no-cors'})
         .then(response => response.json())
         .then(data => {
             tutorsData = data;
@@ -80,7 +80,8 @@ function redirectToRecommendation(course) {
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
     fetch(`${scriptURL}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=${available}`, {
-        method: 'POST'
+        method: 'POST',
+        mode: 'no-cors'
     })
     .then(response => response.json())
     .then(data => {
