@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Recommendation</title>
     <style>
-        /* Styles omitted for brevity */
+        /* Add relevant styles here */
     </style>
 </head>
 <body>
@@ -19,13 +19,12 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const course = params.get('course');
-        const url = 'https://script.google.com/macros/s/AKfycbwL_ACWUYtBJDdx0fMaYRfh873GPupwYpNH6YAa8BrQ2tk1PzCj7NEPFuRZGXunqcrP/exec'; // Replace with your actual Google Apps Script URL
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx8mHX7iyAVc9hdDlDAh5Rm6pvO_3TXVkH3Hc1uXKFplqrPD8K5GsWjUHb8wGg3TZNQ/exec'; // Replace with your Google Apps Script URL
 
         document.getElementById('course-title').textContent = `Course: ${course}`;
 
-        // Function to recommend a tutor for the selected course
         function recommendTutor() {
-            fetch(url + "?function=getTutorsAndCourses")
+            fetch(`${scriptURL}?function=getTutorsAndCourses`)
                 .then(response => response.json())
                 .then(data => {
                     const eligibleTutors = data.filter(tutor => tutor.available && tutor.courses.includes(course))
@@ -43,51 +42,48 @@
                 .catch(error => console.error("Error recommending tutor:", error));
         }
 
-        // Accept a session and update the tutor's status
         function acceptSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
-            fetch(`${url}?function=updateSessionStats&tutorName=${encodeURIComponent(tutorName)}&action=accept`, { method: 'POST' })
+            fetch(`${scriptURL}?function=updateSessionStats&tutorName=${encodeURIComponent(tutorName)}&action=accept`, { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert(`${tutorName} accepted the session.`);
-                        window.history.back(); // Return to main page after accepting
+                        window.history.back();
                     } else {
-                        alert(`Error updating session for ${tutorName}`);
+                        alert(`Failed to update session for ${tutorName}`);
                     }
                 })
                 .catch(error => console.error("Error accepting session:", error));
         }
 
-        // Decline a session and suggest the next tutor
         function declineSession() {
             const tutorName = document.getElementById('tutor-name').textContent.trim();
-            fetch(`${url}?function=updateSessionStats&tutorName=${encodeURIComponent(tutorName)}&action=decline`, { method: 'POST' })
+            fetch(`${scriptURL}?function=updateSessionStats&tutorName=${encodeURIComponent(tutorName)}&action=decline`, { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert(`${tutorName} declined the session. Finding another tutor...`);
-                        recommendTutor(); // Recommend another tutor
+                        recommendTutor();
                     } else {
-                        alert(`Error declining session for ${tutorName}`);
+                        alert(`Failed to decline session for ${tutorName}`);
                     }
                 })
                 .catch(error => console.error("Error declining session:", error));
         }
 
-        // Mark a tutor as "in session" and update availability
         function markInSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
-            fetch(`${url}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=false`, {
+            fetch(`${scriptURL}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=false`, {
                 method: 'POST'
             })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert(`${tutorName} is now in session. Finding another tutor...`);
-                        recommendTutor(); // Recommend another tutor
+                        recommendTutor();
                     } else {
-                        alert(`Error marking ${tutorName} as in session`);
+                        alert(`Failed to mark ${tutorName} as in session`);
                     }
                 })
                 .catch(error => console.error("Error marking in session:", error));
