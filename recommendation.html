@@ -4,13 +4,44 @@
     <meta charset="UTF-8">
     <title>Recommendation</title>
     <style>
-        /* Add relevant styles here */
+        body {
+            background-color: #030303;
+            color: white;
+            text-align: center;
+            padding: 50px;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 50%;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: #1b2363;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 id="course-title"></h1>
         <p>Recommended Tutor: <strong id="tutor-name"></strong></p>
+
         <button onclick="acceptSession()">Accept</button>
         <button onclick="declineSession()">Decline</button>
         <button onclick="markInSession()">In Session</button>
@@ -19,77 +50,80 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const course = params.get('course');
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbx8mHX7iyAVc9hdDlDAh5Rm6pvO_3TXVkH3Hc1uXKFplqrPD8K5GsWjUHb8wGg3TZNQ/exec'; // Replace with your Google Apps Script URL
+        let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+        let recommendedTutors = new Set(); // Track recommended tutors to avoid duplicates
 
         document.getElementById('course-title').textContent = `Course: ${course}`;
 
+        console.log('Tutors Data on Load:', tutorsData); // Debugging: Check tutors data
+
+        // Recommendation logic to filter and recommend tutors
         function recommendTutor() {
-            fetch(`${scriptURL}?function=getTutorsAndCourses`)
-                .then(response => response.json())
-                .then(data => {
-                    const eligibleTutors = data.filter(tutor => tutor.available && tutor.courses.includes(course))
-                        .sort((a, b) => a.sessions - b.sessions);
-                    
-                    if (eligibleTutors.length === 0) {
-                        alert(`No more tutors available for ${course}.`);
-                        window.history.back();
-                        return;
-                    }
-                    
-                    const [recommendedTutor] = eligibleTutors;
-                    document.getElementById('tutor-name').textContent = recommendedTutor.tutor;
-                })
-                .catch(error => console.error("Error recommending tutor:", error));
+            tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+            const eligibleTutors = Object.entries(tutorsData)
+                .filter(([name, data]) => 
+                    data.available && 
+                    data.courses.includes(course) &&
+                    !recommendedTutors.has(name)
+                )
+                .sort((a, b) => a[1].sessions - b[1].sessions);
+
+            console.log('Eligible Tutors:', eligibleTutors); // Debug log
+
+            if (eligibleTutors.length === 0) {
+                alert(`No more tutors available for ${course}.`);
+                window.history.back(); // Go back if no tutors are left
+                return;
+            }
+
+            const [tutorName, tutorData] = eligibleTutors[0];
+            document.getElementById('tutor-name').textContent = tutorName; // Display recommended tutor
+            recommendedTutors.add(tutorName); // Add to recommended tutors to avoid repetition
+            console.log(`Recommended Tutor: ${tutorName}`, tutorData); // Debug log
         }
 
         function acceptSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
-            fetch(`${scriptURL}?function=updateSessionStats&tutorName=${encodeURIComponent(tutorName)}&action=accept`, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`${tutorName} accepted the session.`);
-                        window.history.back();
-                    } else {
-                        alert(`Failed to update session for ${tutorName}`);
-                    }
-                })
-                .catch(error => console.error("Error accepting session:", error));
+            tutorsData[tutorName].available = false;
+            tutorsData[tutorName].sessions += 1;
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+            alert(`${tutorName} accepted the session.`);
+            sessionStorage.setItem("NeedsRefresh", "true");
+            window.history.back(); // Return to the main page on acceptance
         }
 
         function declineSession() {
             const tutorName = document.getElementById('tutor-name').textContent.trim();
-            fetch(`${scriptURL}?function=updateSessionStats&tutorName=${encodeURIComponent(tutorName)}&action=decline`, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`${tutorName} declined the session. Finding another tutor...`);
-                        recommendTutor();
-                    } else {
-                        alert(`Failed to decline session for ${tutorName}`);
-                    }
-                })
-                .catch(error => console.error("Error declining session:", error));
+            console.log(`Declining session for: ${tutorName}`); // Debugging
+
+            // Load latest tutorsData from localStorage
+            tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
+
+            if (tutorsData[tutorName]) {
+                tutorsData[tutorName].declinedSessions = (tutorsData[tutorName].declinedSessions || 0) + 1;
+
+                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+                console.log(`Updated data for ${tutorName}:`, tutorsData[tutorName]); // Debugging
+            } else {
+                console.error(`Tutor ${tutorName} not found!`);
+            }
+
+            alert(`${tutorName} declined the session. Finding another tutor...`);
+            recommendTutor(); // Recommend another tutor
         }
 
         function markInSession() {
             const tutorName = document.getElementById('tutor-name').textContent;
-            fetch(`${scriptURL}?function=updateTutorAvailability&tutorName=${encodeURIComponent(tutorName)}&available=false`, {
-                method: 'POST'
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`${tutorName} is now in session. Finding another tutor...`);
-                        recommendTutor();
-                    } else {
-                        alert(`Failed to mark ${tutorName} as in session`);
-                    }
-                })
-                .catch(error => console.error("Error marking in session:", error));
+            tutorsData[tutorName].available = false;
+            sessionStorage.setItem("NeedsRefresh", "true");
+            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+            alert(`${tutorName} is now in session. Finding another tutor...`);
+            recommendTutor(); // Recommend another tutor
         }
 
-        recommendTutor(); // Start by recommending a tutor on page load
+        recommendTutor(); // Start by recommending a tutor
     </script>
 </body>
 </html>
+
