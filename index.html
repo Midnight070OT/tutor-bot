@@ -106,6 +106,8 @@
         const statsContainer = document.getElementById('stats-container');
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
+        const url = 'https://script.google.com/macros/s/AKfycbyARLqs53QHYZ0ZP2NMEL03EoYeWs83IV42GEP1kqN2mTIPC2U7h5-LxbtskVjfww/exec'; // Replace with your deployment URL
+
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         let courses = JSON.parse(localStorage.getItem('courses')) || [];
@@ -179,21 +181,34 @@
         // Update Availability Button Event Listener
         const updateAvailabilityButton = document.getElementById('update-availability-btn');
         
-        updateAvailabilityButton.addEventListener('click', () => {
-            // Loop through all tutor checkboxes and update availability
-            const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-            
-            checkboxes.forEach((checkbox) => {
-                const tutorName = checkbox.parentElement.textContent.trim(); // Get tutor name
-                tutorsData[tutorName].available = checkbox.checked; // Update availability
-            });
-        
-            // Save the updated data to localStorage
-            localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-            alert('Availability updated successfully!');
-            renderTutors(); // Re-render the tutor list with the new availability
+    updateAvailabilityButton.addEventListener('click', () => {
+    const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
 
-        });
+    checkboxes.forEach((checkbox) => {
+        const tutorName = checkbox.parentElement.textContent.trim();
+        tutorsData[tutorName].available = checkbox.checked;
+
+        // Send POST request to update Google Sheets
+        fetch(`${url}?function=updateTutorAvailability`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tutorName, available: checkbox.checked })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to update availability:', data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    // Update localStorage and render
+    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+    alert('Availability updated successfully!');
+    renderTutors();
+});
+
 
         const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
 let inputSequence = [];
@@ -298,9 +313,6 @@ function exportStats() {
     // Optional: Trigger email sending after export
     sendEmailWithAttachment(statsArray);
 }
-
-const url = 'https://script.google.com/macros/s/AKfycbxQLHODdsGw3XjvcoA1NTEVLGEEDzGxoODF68rl-HJGP6TR91c9wrmnRrwOR-w1aeSH/exec'; // Replace with your deployment URL
-
 function sendEmailWithAttachment(statsArray) {
     fetch(url, {
         method: 'POST',
