@@ -283,7 +283,7 @@ function showStats() {
 }
 
 document.getElementById('export-daily-stats-btn').addEventListener('click', exportDailyStats);
-document.getElementById('run-weekly-summary-btn').addEventListener('click', runWeeklySummary);
+document.getElementById('run-weekly-summary-btn').addEventListener('click', generateWeeklySummary);
 
 function exportDailyStats() {
   fetch(`${url}?function=exportStats`, { method: 'GET' })
