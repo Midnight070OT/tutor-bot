@@ -61,6 +61,17 @@ function renderTutors() {
         </div>`;
     });
 }
+    function renderCourses(tutors) {
+    const uniqueCourses = new Set();
+    tutors.forEach(tutor => tutor.courses.forEach(course => uniqueCourses.add(course)));
+    
+    courseGrid.innerHTML = '';
+    Array.from(uniqueCourses).forEach(course => {
+        courseGrid.innerHTML += `<div class="course-item">
+            <button onclick="redirectToRecommendation('${course}')">${course}</button>
+        </div>`;
+    });
+}
 
 // Update tutor availability in Google Sheets
 function updateTutorAvailability(tutorName, available) {
