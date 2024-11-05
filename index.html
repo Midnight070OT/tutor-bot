@@ -107,7 +107,7 @@
         const statsContainer = document.getElementById('stats-container');
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
-        const url = 'https://script.google.com/macros/s/AKfycbzFRNkqQ8uIaSp_aSbwdCb-v6BMJ99NeubllxRwfA7jXi4omCxxYs5pN4DRntu-ceqS/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbyKJ4WY5RN6DcrPjztiWMGKwBM7gbN4ZbzxJx1z3TBZz10isfcx0gi2i19ouJK1iBmH/exec'; // Replace with your deployment URL
 
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
@@ -286,7 +286,7 @@ document.getElementById('export-daily-stats-btn').addEventListener('click', expo
 document.getElementById('run-weekly-summary-btn').addEventListener('click', generateWeeklySummary);
 
 function exportDailyStats() {
-  fetch(`${url}?function=exportStats`, { method: 'GET' })
+  fetch(`${url}?function=exportDailyStats`, { method: 'GET' })
     .then(response => response.json())
     .then(data => {
       if (data.success) alert(data.message);
