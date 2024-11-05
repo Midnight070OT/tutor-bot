@@ -286,7 +286,7 @@ document.getElementById('export-daily-stats-btn').addEventListener('click', expo
 document.getElementById('run-weekly-summary-btn').addEventListener('click', generateWeeklySummary);
 
 function exportDailyStats() {
-  fetch(`${url}?function=exportDailyStats`, { method: 'GET' })
+  fetch(`${url}?function=exportStats`, { method: 'GET' })
     .then(response => response.json())
     .then(data => {
       if (data.success) alert(data.message);
