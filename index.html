@@ -180,7 +180,9 @@
         // Send POST request to update Google Sheets
         fetch(`${url}?function=updateTutorAvailability`, {
             method: 'POST',
-            mode: 'no-cors',
+            key: URL,
+            callback: showInfo,
+            simpleSheet: true,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tutorName, available: checkbox.checked })
         })
