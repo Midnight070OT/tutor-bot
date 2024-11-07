@@ -134,14 +134,7 @@
                 })
                 .catch(err => console.error("Error fetching schedule data:", err));
         });
-
-
-    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    localStorage.setItem('courses', JSON.stringify(courses));
-    renderTutors();
-    renderCourses(courses);
-}
-
+        
         function renderTutors() {
             tutorGrid.innerHTML = '';
             Object.entries(tutorsData).forEach(([name, data]) => {
