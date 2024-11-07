@@ -181,7 +181,6 @@
         fetch(`${url}?function=updateTutorAvailability`, {
             method: 'POST',
             key: URL,
-            callback: showInfo,
             simpleSheet: true,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tutorName, available: checkbox.checked })
