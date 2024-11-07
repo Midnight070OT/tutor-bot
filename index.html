@@ -112,8 +112,6 @@
         if (Object.keys(tutorsData).length > 0) renderTutors();
         if (courses.length > 0) renderCourses(courses);
 
-        fileInput.addEventListener('change', handleFileUpload);
-
         document.addEventListener("DOMContentLoaded", () => {
             fetch(`${url}?function=getTutorsAndCourses`)
                 .then(response => response.json())
@@ -142,8 +140,6 @@
                     <div class="tutor-item">
                         <label>
                             <input type="checkbox" ${data.available ? 'checked' : ''}> ${name}
-                        </label>
-                        <p>Accepted: ${data.accepted || 0}, Rejected: ${data.rejected || 0}</p>
                     </div>
                 `;
             });
