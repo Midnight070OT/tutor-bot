@@ -103,7 +103,7 @@
         const statsContainer = document.getElementById('stats-container');
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
-        const url = 'https://script.google.com/macros/s/AKfycbzVLx8mTutqHAaQzqkQJhH0_RIky59yU5ZVmrKYV4pcUgArNJU-IOLXleWGusRokqi2/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbxNf61LtJIiktfqVvAtBgkizC-FJy7DXPSfUFkkpwAztdNEz8TSl69IQ-fAXP6OatVz/exec'; // Replace with your deployment URL
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         let courses = JSON.parse(localStorage.getItem('courses')) || [];
@@ -114,6 +114,7 @@
             fetch(`${url}?function=getTutorsAndCourses`)
                 .then(response => response.json())
                 .then(data => {
+                if (Array.isArray(data)) {
                     tutorsData = data.reduce((acc, tutor) => {
                         acc[tutor.tutor] = {
                             available: tutor.available,
@@ -123,6 +124,11 @@
                         };
                         return acc;
                     }, {});
+                } else {
+                    console.error("Unexpected data format:", data);
+                }
+            })
+
         
                     localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
                     renderTutors();
@@ -178,11 +184,11 @@
         // Send POST request to update Google Sheets
         fetch(`${url}?function=updateTutorAvailability`, {
             method: 'POST',
-            key: URL,
-            simpleSheet: true,
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tutorName, available: checkbox.checked })
         })
+
         .then(response => response.json())
         .then(data => {
             if (!data.success) {
