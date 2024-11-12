@@ -104,7 +104,7 @@
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
         const url = 'https://script.google.com/macros/s/AKfycbxcn6Q-9zoyXik8e8mRvnkRS-5seGbVm5d16kevQUHDMNU4lx0hCNjGMShh-WhCcnyR/exec'; // Replace with your deployment URL
-        
+        acc = [];
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         let courses = JSON.parse(localStorage.getItem('courses')) || [];
