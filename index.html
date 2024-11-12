@@ -127,11 +127,11 @@
                     } else {
                         console.error("Unexpected data format:", data);
                     }
+                .catch(err => console.error("Error fetching schedule data:", err));
                 })
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
                 renderTutors();
                 renderCourses(Object.values(tutorsData).flatMap(tutor => tutor.courses));
-                .catch(err => console.error("Error fetching schedule data:", err));
         });
         
         function renderTutors() {
