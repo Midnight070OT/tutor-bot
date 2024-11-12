@@ -114,26 +114,23 @@
             fetch(`${url}?function=getTutorsAndCourses`)
                 .then(response => response.json())
                 .then(data => {
-                if (Array.isArray(data)) {
-                    tutorsData = data.reduce((acc, tutor) => {
-                        acc[tutor.tutor] = {
-                            available: tutor.available,
-                            accepted: tutor.accepted,
-                            rejected: tutor.rejected,
-                            courses: tutor.courses
-                        };
-                        return acc;
-                    }, {});
-                } else {
-                    console.error("Unexpected data format:", data);
-                }
-            })
-
-        
-                    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-                    renderTutors();
-                    renderCourses(Object.values(tutorsData).flatMap(tutor => tutor.courses));
+                    if (Array.isArray(data)) {
+                        tutorsData = data.reduce((acc, tutor) => {
+                            acc[tutor.tutor] = {
+                                available: tutor.available,
+                                accepted: tutor.accepted,
+                                rejected: tutor.rejected,
+                                courses: tutor.courses
+                            };
+                            return acc;
+                        }, {});
+                    } else {
+                        console.error("Unexpected data format:", data);
+                    }
                 })
+                localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+                renderTutors();
+                renderCourses(Object.values(tutorsData).flatMap(tutor => tutor.courses));
                 .catch(err => console.error("Error fetching schedule data:", err));
         });
         
