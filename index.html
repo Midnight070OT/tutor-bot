@@ -103,7 +103,7 @@
         const statsContainer = document.getElementById('stats-container');
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
-        const url = 'https://script.google.com/macros/s/AKfycbxNf61LtJIiktfqVvAtBgkizC-FJy7DXPSfUFkkpwAztdNEz8TSl69IQ-fAXP6OatVz/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbyb0jUrE0Cv-WcdDTiggoTR8sElIQ1kcTHQ_GQ8lr2suH_v3nc51Ha0jHMV0B1EB_Js/exec'; // Replace with your deployment URL
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         let courses = JSON.parse(localStorage.getItem('courses')) || [];
@@ -176,11 +176,15 @@
             tutorsData[tutorName].available = checkbox.checked;
     
             // Send POST request to update Google Sheets
-            fetch(`${url}?function=updateTutorAvailability`, {
-                method: 'get',
+           fetch(url, {
+                method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tutorName, available: checkbox.checked })
+                body: JSON.stringify({
+                    function: 'updateTutorAvailability',
+                    tutorName: tutorName,
+                    available: checkbox.checked
+                })
             })
             .then(data => {
                 if (!data.success) {
@@ -280,11 +284,15 @@ function generateWeeklySummary() {
 
 function sendEmailWithAttachment(statsArray) {
     fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stats: statsArray })
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        function: 'sendSummaryEmailWithBody',
+        summaryTableHtml: '<table><tr><td>Sample Data</td></tr></table>',
+        analysisContent: 'This is a sample analysis.'
     })
+})
     .then(response => response.json())
     .then(data => {
         if (data.success) {
@@ -299,11 +307,6 @@ function sendEmailWithAttachment(statsArray) {
         alert('Error sending email.');
     });
 }
-
-
-
-
-
     </script>
 </body>
 </html>
