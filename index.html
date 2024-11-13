@@ -124,9 +124,7 @@
                             };
                             return acc;
                         }, {});
-                    } else {
-                        console.error("Unexpected data format:", data);
-                    }
+                    } 
                 })
                 localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
                 renderTutors();
@@ -167,9 +165,8 @@
                 const url = `recommendation.html?course=${encodeURIComponent(course)}`;
                 window.location.href = url;
             };
-        // Update Availability Button Event Listener
-        const updateAvailabilityButton = document.getElementById('update-availability-btn');
-        
+    // Update Availability Button Event Listener
+    const updateAvailabilityButton = document.getElementById('update-availability-btn');
     updateAvailabilityButton.addEventListener('click', () => {
     const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
 
@@ -180,7 +177,7 @@
         // Send POST request to update Google Sheets
         fetch(`${url}?function=updateTutorAvailability`, {
             method: 'POST',
-            mode: 'cors',
+            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tutorName, available: checkbox.checked })
         })
