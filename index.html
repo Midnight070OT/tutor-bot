@@ -161,45 +161,44 @@
         }
 
 
-            window.redirectToRecommendation = function(course) {
-                const url = `recommendation.html?course=${encodeURIComponent(course)}`;
-                window.location.href = url;
-            };
+        window.redirectToRecommendation = function(course) {
+            const url = `recommendation.html?course=${encodeURIComponent(course)}`;
+            window.location.href = url;
+        };
+        
     // Update Availability Button Event Listener
-    const updateAvailabilityButton = document.getElementById('update-availability-btn');
-    updateAvailabilityButton.addEventListener('click', () => {
-    const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-
-    checkboxes.forEach((checkbox) => {
-        const tutorName = checkbox.parentElement.textContent.trim();
-        tutorsData[tutorName].available = checkbox.checked;
-
-        // Send POST request to update Google Sheets
-        fetch(`${url}?function=updateTutorAvailability`, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tutorName, available: checkbox.checked })
-        })
-
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                console.error('Failed to update availability:', data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    // Update localStorage and render
-    localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
-    alert('Availability updated successfully!');
-    renderTutors();
-});
+        const updateAvailabilityButton = document.getElementById('update-availability-btn');
+        updateAvailabilityButton.addEventListener('click', () => {
+        const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
+    
+        checkboxes.forEach((checkbox) => {
+            const tutorName = checkbox.parentElement.textContent.trim();
+            tutorsData[tutorName].available = checkbox.checked;
+    
+            // Send POST request to update Google Sheets
+            fetch(`${url}?function=updateTutorAvailability`, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tutorName, available: checkbox.checked })
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error('Failed to update availability:', data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    
+        // Update localStorage and render
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        alert('Availability updated successfully!');
+        renderTutors();
+        });
 
 
         const secretCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Konami Code
-let inputSequence = [];
+        let inputSequence = [];
 
 document.addEventListener('keydown', (e) => {
     inputSequence.push(e.keyCode);
