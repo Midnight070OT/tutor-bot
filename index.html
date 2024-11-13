@@ -174,22 +174,16 @@
         checkboxes.forEach((checkbox) => {
             const tutorName = checkbox.parentElement.textContent.trim();
             tutorsData[tutorName].available = checkbox.checked;
-    
             // Send POST request to update Google Sheets
            fetch(url, {
                 method: 'POST',
-                mode: 'no-cors',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     function: 'updateTutorAvailability',
                     tutorName: tutorName,
                     available: checkbox.checked
                 })
-            })
-            .then(data => {
-                if (!data.success) {
-                    console.error('Failed to update availability:', data.message);
-                }
             })
             .catch(error => console.error('Error:', error));
         });
