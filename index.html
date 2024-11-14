@@ -177,7 +177,7 @@
             // Send POST request to update Google Sheets
            fetch(url, {
                 method: 'POST',
-                mode: 'cors',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     function: 'updateTutorAvailability',
