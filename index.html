@@ -182,8 +182,8 @@
                 .then(response => response.json())
                 .then(data => console.log(data))
                 .catch(error => console.error('Fetch error:', error));
-                };
-            };
+                })
+            })
     
         // Update localStorage and render
         localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
