@@ -103,7 +103,7 @@
         const statsContainer = document.getElementById('stats-container');
         const statsOutput = document.getElementById('stats-output');
         const resetStatsButton = document.getElementById('reset-stats-btn');
-        const url = 'https://script.google.com/macros/s/AKfycbzkgRfKIKxmEKxbhH8iG9ksTZjyiCVfuuY1yOdHOyVxXSPAvMnthLO3oYJAAaKuYL0/exec'; // Replace with your deployment URL
+        const url = 'https://script.google.com/macros/s/AKfycbzP_rx3YYoTK1QmBxISMLGMVCNZxxSogyrYy5RX3ViAONKwZJBLcy7LxtoGz7eaGEfs/exec'; // Replace with your deployment URL
 
         let tutorsData = JSON.parse(localStorage.getItem('tutorsData')) || {};
         let courses = JSON.parse(localStorage.getItem('courses')) || [];
@@ -177,16 +177,13 @@
             // Send POST request to update Google Sheets
            fetch(url, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    function: 'updateTutorAvailability',
-                    tutorName: tutorName,
-                    available: checkbox.checked
-                })
+                body: JSON.stringify({ function: 'updateTutorAvailability', tutorName: 'John Doe', available: true }),
             })
-            .catch(error => console.error('Error:', error));
-        });
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Fetch error:', error));
+
     
         // Update localStorage and render
         localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
