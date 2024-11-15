@@ -169,21 +169,27 @@
     // Update Availability Button Event Listener
         const updateAvailabilityButton = document.getElementById('update-availability-btn');
         updateAvailabilityButton.addEventListener('click', () => {
-        const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach((checkbox) => {
-                const tutorName = checkbox.parentElement.textContent.trim();
-                tutorsData[tutorName].available = checkbox.checked;
-                // Send POST request to update Google Sheets
-               fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ function: 'updateTutorAvailability', tutorName: 'John Doe', available: true }),
-                })
-                .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error('Fetch error:', error));
-                })
-            );
+    const checkboxes = tutorGrid.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+        const tutorName = checkbox.parentElement.textContent.trim();
+        tutorsData[tutorName].available = checkbox.checked;
+            // Send POST request to update Google Sheets
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ function: 'updateTutorAvailability', tutorName: tutorName, available: checkbox.checked }),
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Fetch error:', error));
+        });
+    
+        // Update localStorage and render
+        localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
+        alert('Availability updated successfully!');
+        renderTutors();
+    });
+
     
         // Update localStorage and render
         localStorage.setItem('tutorsData', JSON.stringify(tutorsData));
